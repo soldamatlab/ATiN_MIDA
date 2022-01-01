@@ -1,0 +1,7 @@
+# Miscellaneous
+/data
+/out
+/junk
+
+# MATLAB
+*.asv
