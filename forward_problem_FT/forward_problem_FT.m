@@ -4,6 +4,9 @@ restoredefaultpath
 addpath(Config.FT_path)
 ft_defaults
 
+%% Import commons
+addpath('../common');
+
 %% Check Config
 if ~check_required_field(Config, 'FT_path')
     return
@@ -266,6 +269,7 @@ end
 cfg = struct;
 %cfg.method = 'basedonmri' % determined automatically from specified cfg options
 cfg.resolution = .6; % Shaine has 6 mm % tutorial: 7.5
+% TODO doc says 'cfg.resolution' is in 'mm', this works as intended though
 cfg.mri = mri_segmented;
 cfg.smooth = 0; % tutorial: 5
 %cfg.threshold = 0.1; % is default
