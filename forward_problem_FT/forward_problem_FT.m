@@ -1,58 +1,30 @@
 function [] = forward_problem_FT(Config)
-%% Innit FieldTrip
-restoredefaultpath
-addpath(Config.FT_path)
-ft_defaults
-
 %% Import commons
+restoredefaultpath
 addpath('../common');
 
-%% Check Config
-if ~check_required_field(Config, 'FT_path')
-    return
-end
-if ~check_required_field(Config, 'mri_path')
-    return
-end
-if ~check_required_field(Config, 'elec_template_path')
-    return
-end
-[~] = ft_read_sens(Config.elec_template_path); % load template to test the path
-if ~(check_required_field(Config, 'out_path') && check_required_field(Config, 'data_name'))
-    return
-end
+%% Innit FieldTrip
+if ~check_required_field(Config, 'ftPath'); return; end
+addpath(Config.ftPath)
+ft_defaults
 
-%% Setup
-if isfield(Config, 'run_name')
-    run_name = Config.run_name;
-else
-    run_name = sprintf('run_%s', datestr(now, 'yyyy-mm-dd-HHMM'));
-end
+%% Config
+if ~check_required_field(Config, 'mriPath'); return; end
+if ~check_required_field(Config, 'elecTemplatePath'); return; end
+[~] = ft_read_sens(Config.elecTemplatePath); % load template to test the path
+
+Config.methodName = 'forward_problem_FT';
+[outputPath, imgPath] = get_output_path(Config);
+
+info = struct;
 
 visualize = false;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
-output_path = [Config.out_path '/' Config.data_name '/' run_name];
-if exist(output_path, 'dir')
-    fprintf("Output folder with given / generated name already exists!\n")
-    return
-end
-if ~mkdir(output_path)
-    fprintf("Could not create output folder!\n")
-    return
-end
-img_path = [output_path '\img'];
-if ~mkdir(img_path)
-    fprintf("Could not create image output folder!\n")
-    return
-end
-
-info = struct;
-
 %% 1 Read the MRI
-mri = ft_read_mri(Config.mri_path);
+mri = ft_read_mri(Config.mriPath);
 
 %% visualize
 cfg = struct;
@@ -62,7 +34,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mri);
 set(fig, 'Name', 'MRI original')
-print([img_path '\mri_original'],'-dpng','-r300')
+print([imgPath '\mri_original'],'-dpng','-r300')
 if ~visualize
     close fig
 end
@@ -95,7 +67,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mri);
 set(fig, 'Name', 'MRI resliced')
-print([img_path '\mri_resliced'],'-dpng','-r300')
+print([imgPath '\mri_resliced'],'-dpng','-r300')
 if ~visualize
     close fig
 end
@@ -124,7 +96,7 @@ cfg.location     = 'center';
 fig = figure;
 ft_sourceplot(cfg, seg_i, mri);
 set(fig, 'Name', 'MRI segmented')
-print([img_path '\mri_segmented'],'-dpng','-r300')
+print([imgPath '\mri_segmented'],'-dpng','-r300')
 if ~visualize
     close fig
 end
@@ -141,7 +113,7 @@ mesh = ft_prepare_mesh(cfg, mri_segmented);
 fig = figure('Name', 'Mesh');
 ft_plot_mesh(mesh, 'surfaceonly','yes', 'facecolor','skin', 'edgealpha',0.1)
 view(135,30)
-print([img_path '\mesh'],'-dpng','-r300')
+print([imgPath '\mesh'],'-dpng','-r300')
 if ~visualize
     close fig
 end
@@ -151,7 +123,7 @@ end
 % GSN-HydroCel-257.sfp at https://www.fieldtriptoolbox.org/template/electrode/
 % 1st, 2nd, 3rd are points for allignment
 % 257th is reference electrode
-elec_template = ft_read_sens(Config.elec_template_path); % ? add: 'senstype', 'eeg'
+elec_template = ft_read_sens(Config.elecTemplatePath); % ? add: 'senstype', 'eeg'
 elec_template = ft_convert_units(elec_template, 'mm');
 
 % fid positions from FT (FT elec template is in norm space)
@@ -185,7 +157,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mri_normalised);
 set(fig, 'Name', 'MRI normalised')
-print([img_path '\mri_normalised'],'-dpng','-r300')
+print([imgPath '\mri_normalised'],'-dpng','-r300')
 if ~visualize
     close fig
 end
@@ -241,7 +213,7 @@ if visualize
     set(fig, 'Name', 'Electrodes - projected to head surface')
 end
 fig = plot_electrodes_aligned(mesh, elec, elec_aligned);
-print([img_path '\electrode_template'],'-dpng')
+print([imgPath '\electrode_template'],'-dpng')
 if ~visualize
     close fig
 end
@@ -260,7 +232,7 @@ fig = figure();
 ft_plot_mesh(headmodel)
 ft_plot_sens(elec,'facecolor','b','elecsize',20);
 view(135,30)
-print([img_path '\electrodes_projected'],'-dpng')
+print([imgPath '\electrodes_projected'],'-dpng')
 if ~visualize
     close fig
 end
@@ -293,7 +265,7 @@ title(['nSources = ' num2str(info.sourcemodel.n_sources)])
 ft_plot_mesh(sourcemodel.pos(sourcemodel.inside,:));
 ft_plot_mesh(gray_mesh,'surfaceonly',1,'facecolor', 'skin', 'edgecolor', 'none','facealpha',0.3);
 view(115,15)
-print([img_path '\sources'],'-dpng')
+print([imgPath '\sources'],'-dpng')
 
 if ~visualize
     close fig
@@ -313,13 +285,13 @@ cfg.elec = elec;
 leadfield = ft_prepare_leadfield(cfg);
 
 %% Save data
-save([output_path '\elec'],'elec');
-save([output_path '\mesh'],'mesh');
-save([output_path '\headmodel'],'headmodel');
-save([output_path '\sourcemodel'],'sourcemodel');
-save([output_path '\leadfield'],'leadfield');
-save([output_path '\mri'],'mri');
-save([output_path '\mri_segmented'],'mri_segmented');
-save([output_path '\transMat'],'transMat');
-save([output_path '\info'],'info');
+save([outputPath '\elec'],'elec');
+save([outputPath '\mesh'],'mesh');
+save([outputPath '\headmodel'],'headmodel');
+save([outputPath '\sourcemodel'],'sourcemodel');
+save([outputPath '\leadfield'],'leadfield');
+save([outputPath '\mri'],'mri');
+save([outputPath '\mri_segmented'],'mri_segmented');
+save([outputPath '\transMat'],'transMat');
+save([outputPath '\info'],'info');
 end
