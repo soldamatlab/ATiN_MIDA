@@ -1,7 +1,8 @@
 function [] = mrtim_auto(Config)
-%% Import commons
+%% Import source code
 %TODO throws "Unrecognized function or variable 'cfg_util'."
 %restoredefaultpath
+addpath(genpath('./'));
 addpath('../common');
 
 %% Check Config
