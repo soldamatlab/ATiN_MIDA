@@ -1,6 +1,7 @@
 function [] = forward_problem_FT(Config)
-%% Import commons
+%% Import source code
 restoredefaultpath
+addpath(genpath('./'));
 addpath('../common');
 
 %% Innit FieldTrip
