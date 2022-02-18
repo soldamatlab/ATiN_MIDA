@@ -1,7 +1,7 @@
 function [outputPath, imgPath] = get_output_path(Config)
-if ~check_required_field(Config, 'resultsPath'); return; end
-if ~check_required_field(Config, 'analysisName'); return; end
-if ~check_required_field(Config, 'dataName'); return; end
+check_required_field(Config, 'resultsPath');
+check_required_field(Config, 'analysisName');
+check_required_field(Config, 'dataName');
 
 if isfield(Config, 'runName')
     runName = Config.runName;

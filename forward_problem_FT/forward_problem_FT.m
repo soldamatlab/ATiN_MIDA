@@ -4,13 +4,13 @@ restoredefaultpath
 addpath('../common');
 
 %% Innit FieldTrip
-if ~check_required_field(Config, 'ftPath'); return; end
+check_required_field(Config, 'ftPath');
 addpath(Config.ftPath)
 ft_defaults
 
 %% Config
-if ~check_required_field(Config, 'mriPath'); return; end
-if ~check_required_field(Config, 'elecTemplatePath'); return; end
+check_required_field(Config, 'mriPath');
+check_required_field(Config, 'elecTemplatePath');
 [~] = ft_read_sens(Config.elecTemplatePath); % load template to test the path
 
 Config.methodName = 'forward_problem_FT';
