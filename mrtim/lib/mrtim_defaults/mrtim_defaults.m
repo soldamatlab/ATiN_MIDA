@@ -1,5 +1,5 @@
 function [Mrtim] = mrtim_defaults(mrtimPath)
-%MRTIM_DEFAULTS This function defindes default settings of MR-TIM.
+%MRTIM_DEFAULTS defindes default settings of MR-TIM
 
     % NO DEFAULTS:
     % Mrtim.run.anat_image = {};
