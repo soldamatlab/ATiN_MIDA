@@ -50,7 +50,7 @@ cfg.downsample = 2; % TODO test no downsample
 mesh = ft_prepare_mesh(cfg, mriSegmented);
 
 % ! TODO check if FieldTrip needs this transform too
-if Config.segmentation.method == "mrtim"
+if Config.mriSegmented.method == "mrtim"
     mesh.pos = ft_warp_apply(mriSegmented.transform, mesh.pos, 'homogeneous');
 end
 
@@ -188,7 +188,7 @@ if ~visualize
 end
 
 %% 7(FEM) Create the sourcemodel
-if Config.segmentation.method == "mrtim"
+if Config.mriSegmented.method == "mrtim"
     mriSegmented.gray = mriSegmented.bgm | mriSegmented.cgm;
 end
 
@@ -208,7 +208,7 @@ sourcemodel = ft_prepare_sourcemodel(cfg);
 sourcemodel = ft_convert_units(sourcemodel,'mm');
 info.sourcemodel.n_sources = sum(sourcemodel.inside);
 
-if Config.segmentation.method == "mrtim"
+if Config.mriSegmented.method == "mrtim"
     mriSegmented = rmfield(mriSegmented, "gray");
 end
 
@@ -218,9 +218,9 @@ cfg = struct;
 cfg.method = 'hexahedral';
 
 % TODO un-hardcode this:
-if Config.segmentation.method == "fieldtrip"
+if Config.mriSegmented.method == "fieldtrip"
     cfg.tissue = {'gray'};
-elseif Config.segmentation.method == "mrtim"
+elseif Config.mriSegmented.method == "mrtim"
     cfg.tissue = {'bgm', 'cgm'};
 else
     warning("Unrecognized segmentation method in sourcemodel viualization. Defaulting to label 'gray' for gray matter in segmented mri.")
