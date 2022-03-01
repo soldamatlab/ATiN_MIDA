@@ -1,114 +1,58 @@
-function [] = forward_problem_FT(Config)
-%% Import source code
-restoredefaultpath
-addpath(genpath('./'));
-addpath('../common');
+function [] = model_fieldtrip(Config)
+% TODO check Config
+% outputPath
+% segmentation.method, segmentation.nLayers
+
+%% Import
+wd = fileparts(mfilename('fullpath'));
+addpath(genpath(wd));
+addpath([wd '/../../common']);
 
 %% Innit FieldTrip
-check_required_field(Config, 'ftPath');
-addpath(Config.ftPath)
+check_required_field(Config, 'path');
+check_required_field(Config.path, 'fieldtrip');
+addpath(Config.path.fieldtrip)
 ft_defaults
 
 %% Config
-check_required_field(Config, 'mriPath');
-check_required_field(Config, 'elecTemplatePath');
-[~] = ft_read_sens(Config.elecTemplatePath); % load template to test the path
+% load template to test the path
+elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
+[~] = ft_read_sens(elecTemplatePath);
 
-Config.methodName = 'forward_problem_FT';
-[outputPath, imgPath] = get_output_path(Config);
+check_required_field(Config, 'mriSegmented');
+% TODO add previous submodule option
+check_required_field(Config.mriSegmented, 'path');
+check_required_field(Config.mriSegmented, 'method');
+check_required_field(Config.mriSegmented, 'nLayers');
 
-info = struct;
+check_required_field(Config.path, 'output');
+[outputPath, imgPath] = create_output_folder(Config.path.output);
 
 visualize = false;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
-%% 1 Read the MRI
-mri = ft_read_mri(Config.mriPath);
+info = struct;
 
-%% visualize
-cfg = struct;
-%cfg.funparameter = 'anatomy';
-%cfg.colormap = spring;
-cfg.location = 'center';
-fig = figure;
-ft_sourceplot(cfg, mri);
-set(fig, 'Name', 'MRI original')
-print([imgPath '\mri_original'],'-dpng','-r300')
-if ~visualize
-    close fig
-end
+%% Load segmented MRI
+mriSegmented = ft_read_mri(Config.mriSegmented.path); % TODO add support for var instead of path
 
-%% (5) Realign the MRI
-% ! electrodes are realigned to individual space instead
-% cfg = struct;
-% cfg.method = 'interactive';
-% cfg.coordsys = 'acpc';
-% mri = ft_volumerealign(cfg, mri);
+%% Convert [mriSegmented] to datatype_segmentation (FieldTrip)
+mriSegmented = format_segmented_mri(mriSegmented, Config.mriSegmented.method, Config.mriSegmented.nLayers);
 
-%% visualize
-% if visualize
-%     cfg = struct;
-%     cfg.location = 'center';
-%     figure()
-%     ft_sourceplot(cfg, mri);
-% end
-
-%% 2 Reslice the MRI
-cfg = struct;
-cfg.method = 'linear';
-cfg.dim    = [256 350 350];
-mri = ft_volumereslice(cfg, mri);
-mri = ft_convert_units(mri,'mm');
-
-%% visualize
-cfg = struct;
-cfg.location = 'center';
-fig = figure;
-ft_sourceplot(cfg, mri);
-set(fig, 'Name', 'MRI resliced')
-print([imgPath '\mri_resliced'],'-dpng','-r300')
-if ~visualize
-    close fig
-end
-
-%% FEM
-%% 3(FEM) Segment the MRI
-mri.coordsys = 'acpc';
-cfg = struct;
-cfg.output         = {'scalp','skull','csf','gray','white'};
-% cfg.brainsmooth    = 1; % from the tutorial
-% cfg.scalpthreshold = 0.11;
-% cfg.skullthreshold = 0.15;
-% cfg.brainthreshold = 0.15;
-
-% ! assumes 'mm', seems to work with mri in 'cm' too
-mri_segmented = ft_volumesegment(cfg, mri);
-
-%% visualize
-seg_i = ft_datatype_segmentation(mri_segmented, 'segmentationstyle', 'indexed');
-
-cfg              = struct;
-cfg.funparameter = 'tissue';
-cfg.funcolormap  = lines(6); % distinct color per tissue
-cfg.location     = 'center';
-% cfg.atlas        = seg_i;    % the segmentation can also be used as atlas
-fig = figure;
-ft_sourceplot(cfg, seg_i, mri);
-set(fig, 'Name', 'MRI segmented')
-print([imgPath '\mri_segmented'],'-dpng','-r300')
-if ~visualize
-    close fig
-end
-
-%% 4(FEM) Create the mash
-cfg        = struct;
-cfg.shift  = 0.3;
-cfg.method = 'hexahedral';
+%% 4(FEM) Create the mesh
+cfg            = struct;
+cfg.shift      = 0.3;
+cfg.method     = 'hexahedral';
 cfg.downsample = 2; % TODO test no downsample
 % cfg.resolution = 1; % in mm, tutorial % TODO is forbidden % ? mozna pocet elementu
-mesh = ft_prepare_mesh(cfg, mri_segmented);
+mesh = ft_prepare_mesh(cfg, mriSegmented);
+
+% ! TODO check if FieldTrip needs this transform too
+if Config.segmentation.method == "mrtim"
+    mesh.pos = ft_warp_apply(mriSegmented.transform, mesh.pos, 'homogeneous');
+end
 
 %% visualize
 fig = figure('Name', 'Mesh');
@@ -116,7 +60,7 @@ ft_plot_mesh(mesh, 'surfaceonly','yes', 'facecolor','skin', 'edgealpha',0.1)
 view(135,30)
 print([imgPath '\mesh'],'-dpng','-r300')
 if ~visualize
-    close fig
+    close(fig) % TODO error in forward_problem_FT too !!!
 end
 
 %% 5(FEM) Electrodes
@@ -124,15 +68,10 @@ end
 % GSN-HydroCel-257.sfp at https://www.fieldtriptoolbox.org/template/electrode/
 % 1st, 2nd, 3rd are points for allignment
 % 257th is reference electrode
-elec_template = ft_read_sens(Config.elecTemplatePath); % ? add: 'senstype', 'eeg'
-elec_template = ft_convert_units(elec_template, 'mm');
 
-% fid positions from FT (FT elec template is in norm space)
-elec_norm = ft_read_sens('standard_1005.elc');
-Nas = elec_norm.chanpos(3,:);
-Rpa = elec_norm.chanpos(2,:);
-Lpa = elec_norm.chanpos(1,:);
-clear elec_norm
+% TODO ? add: 'senstype', 'eeg'
+elec_template = ft_read_sens(elecTemplatePath);
+elec_template = ft_convert_units(elec_template, 'mm');
 
 %% visualize
 if visualize
@@ -140,37 +79,48 @@ if visualize
     ft_plot_sens(elec_template)
     set(fig, 'Name', 'Electrodes - template')
 end
+% TODO ? save
 
 %% 5b Find transformation matrix to individual space
-cfg = struct;
-mri.coordsys = 'acpc';
-cfg.nonlinear = 'no';
-cfg.spmversion = 'spm12';
-mri_normalised = ft_volumenormalise(cfg, mri);
+% !!! TODO move to FT segmentation? or enable for FT !!!
+%cfg = struct;
+%mri.coordsys = 'acpc';
+%cfg.nonlinear = 'no';
+%cfg.spmversion = 'spm12';
+%mri_normalised = ft_volumenormalise(cfg, mri);
 
 %%
 %transMat = mri_normalised.cfg.spmparams.Affine;
-transMat = mri_normalised.cfg.initial;
+%transMat = mri_normalised.cfg.initial;
 
 %% visualize
-cfg = struct;
-cfg.location = 'center';
-fig = figure;
-ft_sourceplot(cfg, mri_normalised);
-set(fig, 'Name', 'MRI normalised')
-print([imgPath '\mri_normalised'],'-dpng','-r300')
-if ~visualize
-    close fig
-end
-clear mri_normalised
+%cfg = struct;
+%cfg.location = 'center';
+%fig = figure;
+%ft_sourceplot(cfg, mri_normalised);
+%set(fig, 'Name', 'MRI normalised')
+%print([imgPath '\mri_normalised'],'-dpng','-r300')
+%if ~visualize
+%    close fig
+%end
+%clear mri_normalised
 
 %% 5c Align electrodes to individual space (ft_warp_apply)
-fid_aligned = ft_warp_apply(transMat^-1, [Nas; Lpa; Rpa], 'homogeneous');
-info.electrodes.align = 'ft_warp_apply';
+% load fid positions from FT (FT elec template is in norm space)
+elec_norm = ft_read_sens('standard_1005.elc');
+Nas = elec_norm.chanpos(3,:);
+Rpa = elec_norm.chanpos(2,:);
+Lpa = elec_norm.chanpos(1,:);
+clear elec_norm
+
+%fid_aligned = ft_warp_apply(transMat^-1, [Nas; Lpa; Rpa], 'homogeneous');
+% TODO ! mriSegmented.transform was Config.transform
+fid_aligned = ft_warp_apply(mriSegmented.transform, [Nas; Lpa; Rpa], 'homogeneous'); % TODO !
+info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
 
 %% 5c Align electrodes to individual space (ft_transform_geometry)
 %fid_aligned = ft_transform_geometry(transMat, [Nas; Lpa; Rpa]);
-%info.electrodes.align = 'ft_transform_geometry';
+%info.electrodes.realign.fidAlignMethod = 'ft_transform_geometry';
 
 %%
 cfg = struct;
@@ -182,8 +132,7 @@ cfg.template.label = {'FidNz', 'FidT9', 'FidT10'};
 cfg.template.unit = 'mm';
 cfg.fiducial = {'FidNz','FidT9','FidT10'};
 elec_aligned = ft_electroderealign(cfg, elec_template);
-
-clear elec_template
+info.electrodes.realign.method = cfg.method;
 
 %% visualize
 if visualize
@@ -222,15 +171,15 @@ end
 %% 6(FEM) Create head model
 cfg = struct;
 cfg.method = 'simbio';
-% cfg.conductivity = [0.43 0.0024 1.79 0.14 0.33]; % tutorial, same as tissuelabel in vol_simbio
-cfg.conductivity = [1.79 0.33 0.43 0.01 0.14];
-cfg.tissuelabel = {'csf', 'gray', 'scalp', 'skull', 'white'};
+[cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.segmentation.method, Config.segmentation.nLayers);
+info.headmodel.conductivity = cfg.conductivity;
+info.headmodel.tissuelabel = cfg.tissuelabel;
 headmodel = ft_prepare_headmodel(cfg, mesh);
 headmodel = ft_convert_units(headmodel, 'mm');
 
 %% visualize
 fig = figure();
-ft_plot_mesh(headmodel)
+ft_plot_mesh(headmodel) % TODO consider 'ft_plot_headmodel'
 ft_plot_sens(elec,'facecolor','b','elecsize',20);
 view(135,30)
 print([imgPath '\electrodes_projected'],'-dpng')
@@ -239,26 +188,46 @@ if ~visualize
 end
 
 %% 7(FEM) Create the sourcemodel
+if Config.segmentation.method == "mrtim"
+    mriSegmented.gray = mriSegmented.bgm | mriSegmented.cgm;
+end
+
 cfg = struct;
-%cfg.method = 'basedonmri' % determined automatically from specified cfg options
+%cfg.method = 'basedonmri' % is determined automatically from specified cfg options
 cfg.resolution = .6; % Shaine has 6 mm % tutorial: 7.5
 % TODO doc says 'cfg.resolution' is in 'mm', this works as intended though
-cfg.mri = mri_segmented;
+cfg.mri = mriSegmented;
 cfg.smooth = 0; % tutorial: 5
 %cfg.threshold = 0.1; % is default
 %cfg.inwardshift = 1; % tutorial, shifts dipoles away from surfaces
+
+%cfg.elec = elec;
+%cfg.headmodel = headmodel; TODO ?
 
 sourcemodel = ft_prepare_sourcemodel(cfg);
 sourcemodel = ft_convert_units(sourcemodel,'mm');
 info.sourcemodel.n_sources = sum(sourcemodel.inside);
 
+if Config.segmentation.method == "mrtim"
+    mriSegmented = rmfield(mriSegmented, "gray");
+end
+
 %% visualize
 % TODO ? better visualization
 cfg = struct;
 cfg.method = 'hexahedral';
-cfg.tissue      = {'gray'};
+
+% TODO un-hardcode this:
+if Config.segmentation.method == "fieldtrip"
+    cfg.tissue = {'gray'};
+elseif Config.segmentation.method == "mrtim"
+    cfg.tissue = {'bgm', 'cgm'};
+else
+    warning("Unrecognized segmentation method in sourcemodel viualization. Defaulting to label 'gray' for gray matter in segmented mri.")
+end
+
 cfg.numvertices = 5000;
-gray_mesh = ft_prepare_mesh(cfg,mri_segmented);
+gray_mesh = ft_prepare_mesh(cfg, mriSegmented);
 gray_mesh = ft_convert_units(gray_mesh,'mm');
 
 fig = figure();
@@ -271,7 +240,7 @@ print([imgPath '\sources'],'-dpng')
 if ~visualize
     close fig
 end
-clear grey_mash;
+clear gray_mash;
 
 %% 8(FEM) Compute the leadfield
 %% 8a compute transfer matrix
@@ -291,8 +260,7 @@ save([outputPath '\mesh'],'mesh');
 save([outputPath '\headmodel'],'headmodel');
 save([outputPath '\sourcemodel'],'sourcemodel');
 save([outputPath '\leadfield'],'leadfield');
-save([outputPath '\mri'],'mri');
-save([outputPath '\mri_segmented'],'mri_segmented');
-save([outputPath '\transMat'],'transMat');
+
+save([outputPath '\config'],'Config');
 save([outputPath '\info'],'info');
 end
