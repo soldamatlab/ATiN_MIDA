@@ -1,4 +1,4 @@
-function [mriSegmented] = mrtim_to_datatype_segmentation(mriSegmented, nLayers)
+function [mriSegmented] = mrtim_add_segmentation_masks(mriSegmented, nLayers)
 %MRTIM_TO_DATATYPE_SEGMENTATION
 % [nLayers] needs to be 6 or 12 (output of MR-TIM toolbox has 6 or 12 layers)
 

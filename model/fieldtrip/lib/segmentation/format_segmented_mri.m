@@ -4,7 +4,7 @@ if segmentationMethod == "fieldtrip"
 end
 
 if segmentationMethod == "mrtim"
-    mriSegmented = mrtim_to_datatype_segmentation(mriSegmented, nLayers);
+    mriSegmented = mrtim_add_segmentation_masks(mriSegmented, nLayers);
     return
 end
 
