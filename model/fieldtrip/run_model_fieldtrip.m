@@ -23,6 +23,7 @@ dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out';
 cfg.mriSegmented.path = [dataPath '\segmentation_fieldtrip_test\01\mri_segmented.mat'];
 cfg.mriSegmented.method = 'fieldtrip';
 cfg.mriSegmented.nLayers = 5;
+cfg.norm2ind = [dataPath '\segmentation_fieldtrip_test\01\norm2ind.mat']; % TODO add support for var
 
 %% Miscellaneous
 cfg.visualize = true;

@@ -1,8 +1,4 @@
 function [] = model_fieldtrip(Config)
-% TODO check Config
-% outputPath
-% segmentation.method, segmentation.nLayers
-
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
@@ -24,6 +20,10 @@ check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
 check_required_field(Config.mriSegmented, 'nLayers');
+allignElectrodes = isfield(Config, 'norm2ind');
+if ~allignElectrodes
+    warning("[Config.norm2ind] missing. Assuming segmented MRI is in norm space.")
+end
 
 check_required_field(Config.path, 'output');
 [outputPath, imgPath] = create_output_folder(Config.path.output);
@@ -38,21 +38,17 @@ info = struct;
 %% Load segmented MRI
 mriSegmented = ft_read_mri(Config.mriSegmented.path); % TODO add support for var instead of path
 
-%% Convert [mriSegmented] to datatype_segmentation (FieldTrip)
+%% Add segmentation masks to [mriSegmented]
 mriSegmented = format_segmented_mri(mriSegmented, Config.mriSegmented.method, Config.mriSegmented.nLayers);
 
-%% 4(FEM) Create the mesh
+%% Create mesh
 cfg            = struct;
 cfg.shift      = 0.3;
 cfg.method     = 'hexahedral';
 cfg.downsample = 2; % TODO test no downsample
-% cfg.resolution = 1; % in mm, tutorial % TODO is forbidden % ? mozna pocet elementu
+% cfg.resolution = 1; % in mm, tutorial
+% TODO is cfg.resolution forbidden % ? maybe n of elements
 mesh = ft_prepare_mesh(cfg, mriSegmented);
-
-% ! TODO check if FieldTrip needs this transform too
-if Config.mriSegmented.method == "mrtim"
-    mesh.pos = ft_warp_apply(mriSegmented.transform, mesh.pos, 'homogeneous');
-end
 
 %% visualize
 fig = figure('Name', 'Mesh');
@@ -60,115 +56,95 @@ ft_plot_mesh(mesh, 'surfaceonly','yes', 'facecolor','skin', 'edgealpha',0.1)
 view(135,30)
 print([imgPath '\mesh'],'-dpng','-r300')
 if ~visualize
-    close(fig) % TODO error in forward_problem_FT too !!!
+    close(fig)
 end
 
-%% 5(FEM) Electrodes
-%% 5a Read electrode-position template
+%% Electrodes
+%% 1 Read electrode-position template
 % GSN-HydroCel-257.sfp at https://www.fieldtriptoolbox.org/template/electrode/
 % 1st, 2nd, 3rd are points for allignment
 % 257th is reference electrode
 
 % TODO ? add: 'senstype', 'eeg'
-elec_template = ft_read_sens(elecTemplatePath);
-elec_template = ft_convert_units(elec_template, 'mm');
-
-%% visualize
-if visualize
-    fig = figure;
-    ft_plot_sens(elec_template)
-    set(fig, 'Name', 'Electrodes - template')
-end
-% TODO ? save
-
-%% 5b Find transformation matrix to individual space
-% !!! TODO move to FT segmentation? or enable for FT !!!
-%cfg = struct;
-%mri.coordsys = 'acpc';
-%cfg.nonlinear = 'no';
-%cfg.spmversion = 'spm12';
-%mri_normalised = ft_volumenormalise(cfg, mri);
-
-%%
-%transMat = mri_normalised.cfg.spmparams.Affine;
-%transMat = mri_normalised.cfg.initial;
-
-%% visualize
-%cfg = struct;
-%cfg.location = 'center';
-%fig = figure;
-%ft_sourceplot(cfg, mri_normalised);
-%set(fig, 'Name', 'MRI normalised')
-%print([imgPath '\mri_normalised'],'-dpng','-r300')
-%if ~visualize
-%    close fig
-%end
-%clear mri_normalised
-
-%% 5c Align electrodes to individual space (ft_warp_apply)
-% load fid positions from FT (FT elec template is in norm space)
-elec_norm = ft_read_sens('standard_1005.elc');
-Nas = elec_norm.chanpos(3,:);
-Rpa = elec_norm.chanpos(2,:);
-Lpa = elec_norm.chanpos(1,:);
-clear elec_norm
-
-%fid_aligned = ft_warp_apply(transMat^-1, [Nas; Lpa; Rpa], 'homogeneous');
-% TODO ! mriSegmented.transform was Config.transform
-fid_aligned = ft_warp_apply(mriSegmented.transform, [Nas; Lpa; Rpa], 'homogeneous'); % TODO !
-info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
-
-%% 5c Align electrodes to individual space (ft_transform_geometry)
-%fid_aligned = ft_transform_geometry(transMat, [Nas; Lpa; Rpa]);
-%info.electrodes.realign.fidAlignMethod = 'ft_transform_geometry';
-
-%%
-cfg = struct;
-cfg.method = 'fiducial';
-cfg.template.elecpos(1,:) = fid_aligned(1,:); % location of nas
-cfg.template.elecpos(2,:) = fid_aligned(2,:); % location of lpa
-cfg.template.elecpos(3,:) = fid_aligned(3,:); % location of rpa
-cfg.template.label = {'FidNz', 'FidT9', 'FidT10'};
-cfg.template.unit = 'mm';
-cfg.fiducial = {'FidNz','FidT9','FidT10'};
-elec_aligned = ft_electroderealign(cfg, elec_template);
-info.electrodes.realign.method = cfg.method;
-
-%% visualize
-if visualize
-    fig = figure;
-    ft_plot_sens(elec_aligned)
-    set(fig, 'Name', 'Electrodes - aligned to individual space')
-end
-
-%% 5d Project electrodes to the head surface
-cfg = struct;
-cfg.method = 'project';
-cfg.headshape = mesh;
-elec = ft_electroderealign(cfg, elec_aligned);
-
-% Remove fiducial points
-elec.chantype = elec.chantype(4:end);
-elec.chanunit = elec.chanunit(4:end);
-elec.elecpos = elec.elecpos(4:end,:);
-elec.label = elec.label(4:end);
-elec.chanpos = elec.chanpos(4:end,:);
-elec.cfg.channel = elec.cfg.channel(4:end);
-elec.tra = elec.tra(4:end,4:end);
+elec = ft_read_sens(elecTemplatePath);
+elec = ft_convert_units(elec, 'mm');
 
 %% visualize
 if visualize
     fig = figure;
     ft_plot_sens(elec)
-    set(fig, 'Name', 'Electrodes - projected to head surface')
+    set(fig, 'Name', 'Electrodes - template')
 end
-fig = plot_electrodes_aligned(mesh, elec, elec_aligned);
-print([imgPath '\electrode_template'],'-dpng')
-if ~visualize
-    close fig
+% TODO ? save
+
+%% 2 Align electrodes to individual space
+if allignElectrodes
+    % load fid positions from FT (FT elec template is in norm space)
+    elec_norm = ft_read_sens('standard_1005.elc');
+    Nas = elec_norm.chanpos(3,:);
+    Rpa = elec_norm.chanpos(2,:);
+    Lpa = elec_norm.chanpos(1,:);
+    clear elec_norm
+
+    % (with ft_warp_apply)
+    fid_aligned = ft_warp_apply(Config.norm2ind, [Nas; Lpa; Rpa], 'homogeneous');
+    info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
+
+    % (with ft_transform_geometry)
+    %fid_aligned = ft_transform_geometry(transMat, [Nas; Lpa; Rpa]);
+    %info.electrodes.realign.fidAlignMethod = 'ft_transform_geometry';
+
+    cfg = struct;
+    cfg.method = 'fiducial';
+    cfg.template.elecpos(1,:) = fid_aligned(1,:); % location of nas
+    cfg.template.elecpos(2,:) = fid_aligned(2,:); % location of lpa
+    cfg.template.elecpos(3,:) = fid_aligned(3,:); % location of rpa
+    cfg.template.label = {'FidNz', 'FidT9', 'FidT10'};
+    cfg.template.unit = 'mm';
+    cfg.fiducial = {'FidNz','FidT9','FidT10'};
+    elec = ft_electroderealign(cfg, elec);
+    info.electrodes.realign.method = cfg.method;
+
+    %% visualize
+    if visualize
+        fig = figure;
+        ft_plot_sens(elec)
+        set(fig, 'Name', 'Electrodes - aligned to individual space')
+    end
+    % TODO ? save
 end
 
-%% 6(FEM) Create head model
+%% 3 Project electrodes to head surface
+cfg = struct;
+cfg.method = 'project';
+cfg.headshape = mesh;
+elecProjected = ft_electroderealign(cfg, elec);
+
+% Remove fiducial points
+elecProjected.chantype = elecProjected.chantype(4:end);
+elecProjected.chanunit = elecProjected.chanunit(4:end);
+elecProjected.elecpos = elecProjected.elecpos(4:end,:);
+elecProjected.label = elecProjected.label(4:end);
+elecProjected.chanpos = elecProjected.chanpos(4:end,:);
+elecProjected.cfg.channel = elecProjected.cfg.channel(4:end);
+elecProjected.tra = elecProjected.tra(4:end,4:end);
+
+%% visualize
+fig = figure;
+ft_plot_sens(elecProjected)
+set(fig, 'Name', 'Electrodes - projected to head surface')
+print([imgPath '\elec_projected'],'-dpng')
+if ~visualize
+    close(fig)
+end
+%%
+fig = plot_electrodes_aligned(mesh, elecProjected, elec);
+print([imgPath '\elec_projection'],'-dpng')
+if ~visualize
+    close(fig)
+end
+
+%% Create head model
 cfg = struct;
 cfg.method = 'simbio';
 [cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.segmentation.method, Config.segmentation.nLayers);
@@ -180,14 +156,14 @@ headmodel = ft_convert_units(headmodel, 'mm');
 %% visualize
 fig = figure();
 ft_plot_mesh(headmodel) % TODO consider 'ft_plot_headmodel'
-ft_plot_sens(elec,'facecolor','b','elecsize',20);
+ft_plot_sens(elecProjected,'facecolor','b','elecsize',20);
 view(135,30)
 print([imgPath '\electrodes_projected'],'-dpng')
 if ~visualize
-    close fig
+    clos(fig)
 end
 
-%% 7(FEM) Create the sourcemodel
+%% Create sourcemodel
 if Config.mriSegmented.method == "mrtim"
     mriSegmented.gray = mriSegmented.bgm | mriSegmented.cgm;
 end
@@ -238,19 +214,19 @@ view(115,15)
 print([imgPath '\sources'],'-dpng')
 
 if ~visualize
-    close fig
+    close(fig)
 end
 clear gray_mash;
 
-%% 8(FEM) Compute the leadfield
-%% 8a compute transfer matrix
-[headmodel, elec] = ft_prepare_vol_sens(headmodel, elec);
+%% Leadfield
+%% 1 Compute transfer matrix
+[headmodel, elecProjected] = ft_prepare_vol_sens(headmodel, elec);
 
-%% 8b compute leadfield
+%% 2 Compute leadfield
 cfg = struct;
 cfg.sourcemodel = sourcemodel;
 cfg.headmodel = headmodel;
-cfg.elec = elec;
+cfg.elec = elecProjected;
 % cfg.reducerank = 3; % tutorial
 leadfield = ft_prepare_leadfield(cfg);
 
