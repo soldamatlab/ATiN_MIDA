@@ -22,8 +22,9 @@ end
 
 Config.segmentation = 'FieldTrip';
 
-%% 1 Read the MRI
+%% Read MRI
 mriOriginal = ft_read_mri(Config.mri);
+mriOriginal.coordsys = 'acpc';
 
 %% visualize
 cfg = struct;
@@ -38,22 +39,7 @@ if ~visualize
     close(fig)
 end
 
-%% (5) Realign the MRI
-% ! electrodes are realigned to individual space instead
-% cfg = struct;
-% cfg.method = 'interactive';
-% cfg.coordsys = 'acpc';
-% mriRealigned = ft_volumerealign(cfg, mriOriginal);
-
-%% visualize
-% if visualize
-%     cfg = struct;
-%     cfg.location = 'center';
-%     figure()
-%     ft_sourceplot(cfg, mriRealigned);
-% end
-
-%% 2 Reslice the MRI
+%% Reslice MRI
 cfg = struct;
 cfg.method = 'linear';
 cfg.dim    = [256 350 350];
@@ -71,9 +57,28 @@ if ~visualize
     close(fig)
 end
 
+%% Normalise MRI
+% to get transformation matrix from individual to normalized space
+cfg = struct;
+cfg.nonlinear = 'no';
+cfg.spmversion = 'spm12';
+mriNormalised = ft_volumenormalise(cfg, mriResliced);
+ind2norm = mriNormalised.params.Affine; % same as 'mriNormalised.cfg.spmparams.Affine'
+norm2ind = ind2norm^-1;
+
+%% visualize
+cfg = struct;
+cfg.location = 'center';
+fig = figure;
+ft_sourceplot(cfg, mriNormalised);
+set(fig, 'Name', 'MRI normalised')
+print([imgPath '\mri_normalised'],'-dpng','-r300')
+if ~visualize
+    close(fig)
+end
+
 %% FEM
-%% 3(FEM) Segment the MRI
-mriResliced.coordsys = 'acpc';
+%% Segment the MRI
 cfg = struct;
 cfg.output         = {'scalp','skull','csf','gray','white'};
 % cfg.brainsmooth    = 1; % from the tutorial
@@ -103,6 +108,8 @@ end
 %% Save data
 save([outputPath '\mri_original'],'mriOriginal');
 save([outputPath '\mri_resliced'],'mriResliced');
+save([outputPath '\mri_normalised'],'mriNormalised');
+save([outputPath '\norm2ind'],'norm2ind');
 save([outputPath '\mri_segmented'],'mriSegmented');
 
 save([outputPath '\config'],'Config');
