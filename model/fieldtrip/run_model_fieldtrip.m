@@ -18,6 +18,7 @@ dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out';
 %cfg.mriSegmented.path = [dataPath '\test\mrtim\ANDROVICOVA_RENATA\01\anatomy_prepro_segment.nii'];
 %cfg.mriSegmented.method = 'mrtim';
 %cfg.mriSegmented.nLayers = 12; % 6 or 12
+% ! TODO is MR-TIM output in norm space?
 
 %FieldTrip segmentation:
 cfg.mriSegmented.path = [dataPath '\segmentation_fieldtrip_test\01\mri_segmented.mat'];

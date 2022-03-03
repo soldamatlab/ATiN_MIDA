@@ -15,12 +15,19 @@ addpath([wd '\model\fieldtrip']);
 outputPath = get_output_path(Config);
 segmentationPath = [outputPath '\segmentation'];
 modelPath = [outputPath '\model'];
+Info = struct;
 
 %% Segmentation
 % TODO add try catch blocks
 if isfield(Config.segmentation, 'fieldtrip')
+    Info.segmentation.fieldtrip.finished = true;
     Config.segmentation.fieldtrip.path.output = [segmentationPath '\fieldtrip'];
-    segmentation_fieldtrip(Config.segmentation.fieldtrip);
+    try
+        segmentation_fieldtrip(Config.segmentation.fieldtrip);
+    catch ftSegmentationError
+        Info.segmentation.fieldtrip.finished = false;
+        submodule_error_warning("FieldTrip segmentation", ftSegmentationError)
+    end
 end
 
 if isfield(Config.segmentation, 'brainstorm')
@@ -29,15 +36,26 @@ if isfield(Config.segmentation, 'brainstorm')
 end
 
 if isfield(Config.segmentation, 'mrtim')
+    Info.segmentation.mrtim.finished = true;
     Config.segmentation.mrtim.path.output = [segmentationPath '\mrtim'];
-    segmentation_mrtim(Config.segmentation.mrtim);
+    try
+        segmentation_mrtim(Config.segmentation.mrtim);
+    catch mrtimSegmentationError
+        Info.segmentation.mrtim.finished = false;
+        submodule_error_warning("MR-TIM segmentation", mrtimSegmentationError)
+    end
 end
 
 %% Model conductivity
-% TODO add try catch blocks
 if isfield(Config.model, 'fieldtrip')
+    Info.model.fieldtrip.finished = true;
     Config.model.fieldtrip.path.output = [modelPath '\fieldtrip'];
-    model_fieldtrip(Config.segmentation.fieldtrip);
+    try
+        model_fieldtrip(Config.segmentation.fieldtrip);
+    catch ftModelError
+        Info.model.fieldtrip.finished = false;
+        submodule_error_warning("FieldTrip conductivity modelling", ftModelError)
+    end
 end
 
 if isfield(Config.model, 'brainstorm')
@@ -47,6 +65,7 @@ end
 
 %% Save additional files
 save([outputPath '\config'],'Config');
+save([outputPath '\info'],'Info');
 
 end
 
