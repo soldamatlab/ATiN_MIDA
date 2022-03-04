@@ -27,7 +27,7 @@ end
 
 if isfield(Config, 'model')
     if isfield(Config.segmentation, 'fieldtrip')
-        
+        Config.model.fieldtrip.visualize = visualize;
     end
     if isfield(Config.segmentation, 'brainstorm')
         % TODO

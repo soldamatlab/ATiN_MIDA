@@ -11,11 +11,11 @@ addpath([wd '\model\fieldtrip']);
 
 %% Config
 % TODO check number of segmentation and model methods
-visualize = set_visualize(Config);
-
 outputPath = get_output_path(Config);
 segmentationPath = [outputPath '\segmentation'];
 modelPath = [outputPath '\model'];
+
+Config = set_visualize(Config);
 
 Info = struct;
 
