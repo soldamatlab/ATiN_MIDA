@@ -5,13 +5,24 @@ function [] = mrtim_plot_output(outputPath, imgPath)
 %   [imgPath] is path where plotted images are to be saved.
 %   If [imgPath] is not passed, images are saved to 'outputPath\img'.
 
-%% Create paths
+%% Create paths and folders
 tissueMasksPath = [outputPath '\tissue_masks'];
 
-if  ~exist('imgPath', 'var');
+if  ~exist('imgPath', 'var')
     imgPath = [outputPath '\img'];
 end
-masksPath = [imgPath '\tissue_masks'];
+if ~exist(imgPath, 'dir')
+    if ~mkdir(imgPath)
+        error("Could not create image folder!")
+    end
+end
+
+masksImgPath = [imgPath '\tissue_masks'];
+if ~exist(masksImgPath, 'dir')
+    if ~mkdir(masksImgPath)
+        error("Could not create mask image folder!")
+    end
+end
 
 %% Load segmented MRI
 mri = ft_read_mri([outputPath '\anatomy_prepro.nii']);
@@ -69,27 +80,27 @@ cfg.funcolormap = spring;
 cfg.location = 'center';
 
 ft_sourceplot(cfg, bGM);
-print([masksPath '\bGM'],'-dpng','-r300')
+print([masksImgPath '\bGM'],'-dpng','-r300')
 ft_sourceplot(cfg, brainstem);
-print([masksPath '\brainstem'],'-dpng','-r300')
+print([masksImgPath '\brainstem'],'-dpng','-r300')
 ft_sourceplot(cfg, bWM);
-print([masksPath '\bWM'],'-dpng','-r300')
+print([masksImgPath '\bWM'],'-dpng','-r300')
 ft_sourceplot(cfg, cGM);
-print([masksPath '\cGM'],'-dpng','-r300')
+print([masksImgPath '\cGM'],'-dpng','-r300')
 ft_sourceplot(cfg, compacta);
-print([masksPath '\compacta'],'-dpng','-r300')
+print([masksImgPath '\compacta'],'-dpng','-r300')
 ft_sourceplot(cfg, CSF);
-print([masksPath '\CSF'],'-dpng','-r300')
+print([masksImgPath '\CSF'],'-dpng','-r300')
 ft_sourceplot(cfg, cWM);
-print([masksPath '\cWM'],'-dpng','-r300')
+print([masksImgPath '\cWM'],'-dpng','-r300')
 ft_sourceplot(cfg, eyes);
-print([masksPath '\eyes'],'-dpng','-r300')
+print([masksImgPath '\eyes'],'-dpng','-r300')
 ft_sourceplot(cfg, fat);
-print([masksPath '\fat'],'-dpng','-r300')
+print([masksImgPath '\fat'],'-dpng','-r300')
 ft_sourceplot(cfg, muscle);
-print([masksPath '\muscle'],'-dpng','-r300')
+print([masksImgPath '\muscle'],'-dpng','-r300')
 ft_sourceplot(cfg, skin);
-print([masksPath '\skin'],'-dpng','-r300')
+print([masksImgPath '\skin'],'-dpng','-r300')
 ft_sourceplot(cfg, spongiosa);
-print([masksPath '\spongiosa'],'-dpng','-r300')
+print([masksImgPath '\spongiosa'],'-dpng','-r300')
 end
