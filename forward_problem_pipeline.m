@@ -3,7 +3,7 @@ function [] = forward_problem_pipeline(Config)
 %   TODO Detailed explanation
 %% Import
 wd = fileparts(mfilename('fullpath'));
-addpath([wd '\lib']);
+addpath(genpath([wd '\lib']));
 addpath([wd '\common']);
 addpath([wd '\segmentation\fieldtrip']);
 addpath([wd '\segmentation\mrtim']);
@@ -11,55 +11,43 @@ addpath([wd '\model\fieldtrip']);
 
 %% Config
 % TODO check number of segmentation and model methods
+visualize = set_visualize(Config);
 
 outputPath = get_output_path(Config);
 segmentationPath = [outputPath '\segmentation'];
 modelPath = [outputPath '\model'];
+
 Info = struct;
 
 %% Segmentation
-% TODO add try catch blocks
 if isfield(Config.segmentation, 'fieldtrip')
     Info.segmentation.fieldtrip.finished = true;
     Config.segmentation.fieldtrip.path.output = [segmentationPath '\fieldtrip'];
-    try
-        segmentation_fieldtrip(Config.segmentation.fieldtrip);
-    catch ftSegmentationError
-        Info.segmentation.fieldtrip.finished = false;
-        submodule_error_warning("FieldTrip segmentation", ftSegmentationError)
-    end
+    Info.segmentation.fieldtrip.finished = ...
+    run_submodule(segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
 end
 
 if isfield(Config.segmentation, 'brainstorm')
-    % TODO not implemented
+    % TODO implement
     warning("Segmentation with Brainstorm is not yet implemented. Skipping.")
 end
 
 if isfield(Config.segmentation, 'mrtim')
-    Info.segmentation.mrtim.finished = true;
     Config.segmentation.mrtim.path.output = [segmentationPath '\mrtim'];
-    try
-        segmentation_mrtim(Config.segmentation.mrtim);
-    catch mrtimSegmentationError
-        Info.segmentation.mrtim.finished = false;
-        submodule_error_warning("MR-TIM segmentation", mrtimSegmentationError)
-    end
+    Info.segmentation.mrtim.finished = ...
+    run_submodule(segmentation_mrtim, Config.segmentation.mrtim, "MR-TIM segmentation");
 end
 
 %% Model conductivity
 if isfield(Config.model, 'fieldtrip')
     Info.model.fieldtrip.finished = true;
     Config.model.fieldtrip.path.output = [modelPath '\fieldtrip'];
-    try
-        model_fieldtrip(Config.segmentation.fieldtrip);
-    catch ftModelError
-        Info.model.fieldtrip.finished = false;
-        submodule_error_warning("FieldTrip conductivity modelling", ftModelError)
-    end
+    Info.model.fieldtrip.finished = ...
+    run_submodule(model_fieldtrip, Config.model.fieldtrip, "FieldTrip conductivity modeling");
 end
 
 if isfield(Config.model, 'brainstorm')
-    % TODO not implemented
+    % TODO implement
     warning("Conductivity modeling with Brainstorm is not yet implemented. Skipping.")
 end
 

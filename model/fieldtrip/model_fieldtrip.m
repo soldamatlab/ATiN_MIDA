@@ -36,10 +36,10 @@ end
 info = struct;
 
 %% Load segmented MRI
-mriSegmented = ft_read_mri(Config.mriSegmented.path); % TODO add support for var instead of path
-
-%% Add segmentation masks to [mriSegmented]
-mriSegmented = format_segmented_mri(mriSegmented, Config.mriSegmented.method, Config.mriSegmented.nLayers);
+% TODO add support for var instead of path
+% TODO add support for .nii mrtim file without added masks
+%mriSegmented = ft_read_mri(Config.mriSegmented.path);
+mriSegmented = load_mri_segmented(Config);
 
 %% Create mesh
 cfg            = struct;

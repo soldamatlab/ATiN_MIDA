@@ -25,6 +25,11 @@ end
 
 [outputPath, imgPath] = create_output_folder(Config.path.output);
 
+visualize = false;
+if isfield(Config, 'visualize')
+    visualize = Config.visualize;
+end
+
 Config.segmentation = 'mrtim';
 
 %% Innit SPM
@@ -49,8 +54,17 @@ end
 %% Run SPM
 spm_jobman('run', matlabbatch);
 
+%% Create segmented MRI with segmentation masks
+mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segmented.nii']);
+mriSegmented = mrtim_add_segmentation_masks(mriSegmented, 12); % TODO implement 6 layers
+
 %% Plot images and save additional files
 save([outputPath '\config'],'Config');
+save([outputPath '\mri_segmented'], mriSegmented);
 
-mrtim_plot_output(outputPath, imgPath);
+cfg.outputPath = outputPath;
+cfg.maskedMri = mriSegmented;
+cfg.imgPath = imgPath;
+cfg.visualize = visualize;
+mrtim_plot_output(cfg);
 end
