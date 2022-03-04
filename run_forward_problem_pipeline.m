@@ -59,7 +59,7 @@ cfg.model.fieldtrip.mriSegmented.nLayers = 12;
 
 % (B) PIPELINE MODELING
 % Specify a previous segmentation submodule to follow up on:
-%cfg.model.fieldtrip.mriSegmented.submodule = 'fieldtrip'; % TODO implement
+%cfg.model.fieldtrip.submodule = 'fieldtrip';
 % Choose from ['fieldtrip', 'mrtim', 'brainstorm'].
 
 %% Model - Brainstorm (TODO)

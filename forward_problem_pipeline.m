@@ -21,7 +21,6 @@ Info = struct;
 
 %% Segmentation
 if isfield(Config.segmentation, 'fieldtrip')
-    Info.segmentation.fieldtrip.finished = true;
     Config.segmentation.fieldtrip.path.output = [segmentationPath '\fieldtrip'];
     Info.segmentation.fieldtrip.finished = ...
     run_submodule(segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
@@ -40,7 +39,6 @@ end
 
 %% Model conductivity
 if isfield(Config.model, 'fieldtrip')
-    Info.model.fieldtrip.finished = true;
     Config.model.fieldtrip.path.output = [modelPath '\fieldtrip'];
     Info.model.fieldtrip.finished = ...
     run_submodule(model_fieldtrip, Config.model.fieldtrip, "FieldTrip conductivity modeling");
