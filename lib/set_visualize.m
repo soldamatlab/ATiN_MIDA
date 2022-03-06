@@ -2,7 +2,7 @@ function [Config] = set_visualize(Config)
 inConfig = false;
 if isfield(Config, 'miscellaneous')
     if isfield(Config.miscellaneous, 'visualize')
-        if isboolean(Config.miscellaneous.visualize)
+        if islogical(Config.miscellaneous.visualize)
             visualize = Config.miscellaneous.visualize;
             inConfig = true;
         end
@@ -26,10 +26,10 @@ if isfield(Config, 'segmentation')
 end
 
 if isfield(Config, 'model')
-    if isfield(Config.segmentation, 'fieldtrip')
+    if isfield(Config.model, 'fieldtrip')
         Config.model.fieldtrip.visualize = visualize;
     end
-    if isfield(Config.segmentation, 'brainstorm')
+    if isfield(Config.model, 'brainstorm')
         % TODO
     end
 end

@@ -1,7 +1,6 @@
 function [outputPath] = get_output_path(Config)
 check_required_field(Config, 'resultsPath');
 check_required_field(Config, 'analysisName');
-check_required_field(Config, 'segmentation');
 check_required_field(Config, 'dataName');
 
 if isfield(Config, 'runName')

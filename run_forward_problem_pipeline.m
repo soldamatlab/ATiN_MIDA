@@ -53,9 +53,15 @@ cfg.model.fieldtrip.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 
 % (A) STANDALONE MODELING
 % Set segmented MRI path:
-cfg.model.fieldtrip.mriSegmented.path = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\01\segmentation\mrtim\mri_segmented.mat'];
-cfg.model.fieldtrip.mriSegmented.method = 'mrtim';
-cfg.model.fieldtrip.mriSegmented.nLayers = 12;
+% (i) path to a MRI segmented by FieldTrip (5 layers)
+cfg.model.fieldtrip.mriSegmented.path = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\03\segmentation\fieldtrip\mri_segmented.mat'];
+cfg.model.fieldtrip.mriSegmented.method = 'fieldtrip';
+cfg.model.fieldtrip.mriSegmented.nLayers = 5;
+
+% (ii) path to a MRI segmented by MR-TIM (6 or 12 layers)
+%cfg.model.fieldtrip.mriSegmented.path = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\03\segmentation\mrtim\mri_segmented.mat'];
+%cfg.model.fieldtrip.mriSegmented.method = 'mrtim';
+%cfg.model.fieldtrip.mriSegmented.nLayers = 12;
 
 % (B) PIPELINE MODELING
 % Specify a previous segmentation submodule to follow up on:

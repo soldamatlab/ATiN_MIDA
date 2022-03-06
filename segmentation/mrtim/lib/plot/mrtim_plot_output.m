@@ -9,6 +9,7 @@ function [] = mrtim_plot_output(Config)
 if ~isfield(Config, 'outputPath')
     error("'Config.outputPath' is required!")
 end
+outputPath = Config.outputPath;
 
 tissueMasksPath = [outputPath '\tissue_masks'];
 
@@ -35,6 +36,13 @@ if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
+%% Load MRI anatomy
+if isfield(Config, 'mri')
+    mri = Config.mri;
+else    
+    mri = ft_read_mri([outputPath '\anatomy_prepro.nii']);
+end
+
 %% Load segmented MRI
 if isfield(Config, 'maskedMri')
     mriSegmented = Config.maskedMri;
@@ -43,7 +51,6 @@ else
     wd = fileparts(mfilename('fullpath')); % Only works in a script!
     addpath([wd '\..']);
     
-    mri = ft_read_mri([outputPath '\anatomy_prepro.nii']);
     mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segment.nii']);
     mriSegmented = mrtim_add_segmentation_masks(mriSegmented, 12); % TODO implement 6 layers
 end

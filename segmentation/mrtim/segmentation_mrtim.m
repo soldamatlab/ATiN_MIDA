@@ -55,12 +55,12 @@ end
 spm_jobman('run', matlabbatch);
 
 %% Create segmented MRI with segmentation masks
-mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segmented.nii']);
+mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segment.nii']);
 mriSegmented = mrtim_add_segmentation_masks(mriSegmented, 12); % TODO implement 6 layers
 
 %% Plot images and save additional files
-save([outputPath '\config'],'Config');
-save([outputPath '\mri_segmented'], mriSegmented);
+save([outputPath '\config'], 'Config');
+save([outputPath '\mri_segmented'], 'mriSegmented');
 
 cfg.outputPath = outputPath;
 cfg.maskedMri = mriSegmented;

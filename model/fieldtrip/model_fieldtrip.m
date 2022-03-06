@@ -70,12 +70,13 @@ elec = ft_read_sens(elecTemplatePath);
 elec = ft_convert_units(elec, 'mm');
 
 %% visualize
-if visualize
-    fig = figure;
-    ft_plot_sens(elec)
-    set(fig, 'Name', 'Electrodes - template')
+fig = figure;
+ft_plot_sens(elec)
+set(fig, 'Name', 'Electrodes - template')
+print([imgPath '\elec_template'],'-dpng','-r300')
+if ~visualize
+    close(fig)
 end
-% TODO ? save
 
 %% 2 Align electrodes to individual space
 if allignElectrodes
@@ -106,12 +107,13 @@ if allignElectrodes
     info.electrodes.realign.method = cfg.method;
 
     %% visualize
-    if visualize
-        fig = figure;
-        ft_plot_sens(elec)
-        set(fig, 'Name', 'Electrodes - aligned to individual space')
+    fig = figure;
+    ft_plot_sens(elec)
+    set(fig, 'Name', 'Electrodes - aligned to individual space')
+    print([imgPath '\elec_aligned'],'-dpng','-r300')
+    if ~visualize
+        close(fig)
     end
-    % TODO ? save
 end
 
 %% 3 Project electrodes to head surface
@@ -147,7 +149,7 @@ end
 %% Create head model
 cfg = struct;
 cfg.method = 'simbio';
-[cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.segmentation.method, Config.segmentation.nLayers);
+[cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.mriSegmented.method, Config.mriSegmented.nLayers);
 info.headmodel.conductivity = cfg.conductivity;
 info.headmodel.tissuelabel = cfg.tissuelabel;
 headmodel = ft_prepare_headmodel(cfg, mesh);

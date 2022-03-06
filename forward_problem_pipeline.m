@@ -20,33 +20,37 @@ Config = set_visualize(Config);
 Info = struct;
 
 %% Segmentation
-if isfield(Config.segmentation, 'fieldtrip')
-    Config.segmentation.fieldtrip.path.output = [segmentationPath '\fieldtrip'];
-    Info.segmentation.fieldtrip.finished = ...
-    run_submodule(segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
-end
+if isfield(Config, 'segmentation')
+    if isfield(Config.segmentation, 'fieldtrip')
+        Config.segmentation.fieldtrip.path.output = [segmentationPath '\fieldtrip'];
+        Info.segmentation.fieldtrip.finished = ...
+        run_submodule(@segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
+    end
 
-if isfield(Config.segmentation, 'brainstorm')
-    % TODO implement
-    warning("Segmentation with Brainstorm is not yet implemented. Skipping.")
-end
+    if isfield(Config.segmentation, 'brainstorm')
+        % TODO implement
+        warning("Segmentation with Brainstorm is not yet implemented. Skipping.")
+    end
 
-if isfield(Config.segmentation, 'mrtim')
-    Config.segmentation.mrtim.path.output = [segmentationPath '\mrtim'];
-    Info.segmentation.mrtim.finished = ...
-    run_submodule(segmentation_mrtim, Config.segmentation.mrtim, "MR-TIM segmentation");
+    if isfield(Config.segmentation, 'mrtim')
+        Config.segmentation.mrtim.path.output = [segmentationPath '\mrtim'];
+        Info.segmentation.mrtim.finished = ...
+        run_submodule(@segmentation_mrtim, Config.segmentation.mrtim, "MR-TIM segmentation");
+    end
 end
 
 %% Model conductivity
-if isfield(Config.model, 'fieldtrip')
-    Config.model.fieldtrip.path.output = [modelPath '\fieldtrip'];
-    Info.model.fieldtrip.finished = ...
-    run_submodule(model_fieldtrip, Config.model.fieldtrip, "FieldTrip conductivity modeling");
-end
+if isfield(Config, 'model')
+    if isfield(Config.model, 'fieldtrip')
+        Config.model.fieldtrip.path.output = [modelPath '\fieldtrip'];
+        Info.model.fieldtrip.finished = ...
+        run_submodule(@model_fieldtrip, Config.model.fieldtrip, "FieldTrip conductivity modeling");
+    end
 
-if isfield(Config.model, 'brainstorm')
-    % TODO implement
-    warning("Conductivity modeling with Brainstorm is not yet implemented. Skipping.")
+    if isfield(Config.model, 'brainstorm')
+        % TODO implement
+        warning("Conductivity modeling with Brainstorm is not yet implemented. Skipping.")
+    end
 end
 
 %% Save additional files
