@@ -60,7 +60,7 @@ if ~visualize
 end
 
 %% Electrodes
-%% 1 Read electrode-position template
+%% 1 Read electrode-position template (in norm space)
 % GSN-HydroCel-257.sfp at https://www.fieldtriptoolbox.org/template/electrode/
 % 1st, 2nd, 3rd are points for allignment
 % 257th is reference electrode
@@ -80,21 +80,22 @@ end
 
 %% 2 Align electrodes to individual space
 if allignElectrodes
-    % load fid positions from FT (FT elec template is in norm space)
+    % (i) get fiducial points from FT elec template (is in norm space)
     elec_norm = ft_read_sens('standard_1005.elc');
     Nas = elec_norm.chanpos(3,:);
     Rpa = elec_norm.chanpos(2,:);
     Lpa = elec_norm.chanpos(1,:);
     clear elec_norm
 
-    % (with ft_warp_apply)
+    % (iia) Allign fiducial points to ind space (with ft_warp_apply)
     fid_aligned = ft_warp_apply(Config.norm2ind, [Nas; Lpa; Rpa], 'homogeneous');
     info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
 
-    % (with ft_transform_geometry)
-    %fid_aligned = ft_transform_geometry(transMat, [Nas; Lpa; Rpa]);
+    % (iib) Allign fiducial points to ind space (with ft_transform_geometry)
+    %fid_aligned = ft_transform_geometry(Config.norm2ind, [Nas; Lpa; Rpa]);
     %info.electrodes.realign.fidAlignMethod = 'ft_transform_geometry';
 
+    % (iii) Allign elec template to ind space
     cfg = struct;
     cfg.method = 'fiducial';
     cfg.template.elecpos(1,:) = fid_aligned(1,:); % location of nas
@@ -105,6 +106,15 @@ if allignElectrodes
     cfg.fiducial = {'FidNz','FidT9','FidT10'};
     elec = ft_electroderealign(cfg, elec);
     info.electrodes.realign.method = cfg.method;
+    
+    % (iv) Remove fiducial points
+    elec.chantype = elec.chantype(4:end);
+    elec.chanunit = elec.chanunit(4:end);
+    elec.elecpos = elec.elecpos(4:end,:);
+    elec.label = elec.label(4:end);
+    elec.chanpos = elec.chanpos(4:end,:);
+    elec.cfg.channel = elec.cfg.channel(4:end);
+    elec.tra = elec.tra(4:end,4:end);
 
     %% visualize
     fig = figure;
@@ -121,15 +131,6 @@ cfg = struct;
 cfg.method = 'project';
 cfg.headshape = mesh;
 elecProjected = ft_electroderealign(cfg, elec);
-
-% Remove fiducial points
-elecProjected.chantype = elecProjected.chantype(4:end);
-elecProjected.chanunit = elecProjected.chanunit(4:end);
-elecProjected.elecpos = elecProjected.elecpos(4:end,:);
-elecProjected.label = elecProjected.label(4:end);
-elecProjected.chanpos = elecProjected.chanpos(4:end,:);
-elecProjected.cfg.channel = elecProjected.cfg.channel(4:end);
-elecProjected.tra = elecProjected.tra(4:end,4:end);
 
 %% visualize
 fig = figure;
