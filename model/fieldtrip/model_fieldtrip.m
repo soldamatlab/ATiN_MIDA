@@ -12,7 +12,7 @@ ft_defaults
 
 %% Config
 % load template to test the path
-elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
+%elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
 [~] = ft_read_sens(elecTemplatePath);
 
 check_required_field(Config, 'mriSegmented');
@@ -20,7 +20,7 @@ check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
 check_required_field(Config.mriSegmented, 'nLayers');
-allignElectrodes = isfield(Config, 'norm2ind');
+allignElectrodes = isfield(Config.mriSegmented, 'norm2ind');
 if ~allignElectrodes
     warning("[Config.norm2ind] missing. Assuming segmented MRI is in norm space.")
 end
@@ -39,7 +39,8 @@ info = struct;
 % TODO add support for var instead of path
 % TODO add support for .nii mrtim file without added masks
 %mriSegmented = ft_read_mri(Config.mriSegmented.path);
-mriSegmented = load_mri_segmented(Config);
+mriSegmented = load_var_from_mat('mriSegmented', Config.mriSegmented.path);
+norm2ind = load_var_from_mat('norm2ind', Config.mriSegmented.norm2ind);
 
 %% Create mesh
 cfg            = struct;
@@ -88,7 +89,7 @@ if allignElectrodes
     clear elec_norm
 
     % (iia) Allign fiducial points to ind space (with ft_warp_apply)
-    fid_aligned = ft_warp_apply(Config.norm2ind, [Nas; Lpa; Rpa], 'homogeneous');
+    fid_aligned = ft_warp_apply(norm2ind, [Nas; Lpa; Rpa], 'homogeneous');
     info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
 
     % (iib) Allign fiducial points to ind space (with ft_transform_geometry)
@@ -149,8 +150,17 @@ end
 
 %% Create head model
 cfg = struct;
+
+% (i) Simbio % see doc ft_headmodel_simbio
 cfg.method = 'simbio';
+
+% (ii) DUNEuro % see doc ft_headmodel_duneuro
+% ! works only on Linux machines
+%cfg.method = 'duneuro';
+%cfg.duneuro_settings = ; % optional (see http://www.duneuro.org)
+
 [cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.mriSegmented.method, Config.mriSegmented.nLayers);
+info.headmodel.method = cfg.method;
 info.headmodel.conductivity = cfg.conductivity;
 info.headmodel.tissuelabel = cfg.tissuelabel;
 headmodel = ft_prepare_headmodel(cfg, mesh);
