@@ -11,8 +11,10 @@ addpath(Config.path.fieldtrip)
 ft_defaults
 
 %% Config
+info = struct;
+
 % load template to test the path
-%elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
+elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
 [~] = ft_read_sens(elecTemplatePath);
 
 check_required_field(Config, 'mriSegmented');
@@ -20,8 +22,9 @@ check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
 check_required_field(Config.mriSegmented, 'nLayers');
-allignElectrodes = isfield(Config.mriSegmented, 'norm2ind');
-if ~allignElectrodes
+alignElectrodes = isfield(Config.mriSegmented, 'norm2ind');
+info.electrodes.realign.bool = alignElectrodes;
+if ~alignElectrodes
     warning("[Config.norm2ind] missing. Assuming segmented MRI is in norm space.")
 end
 
@@ -32,8 +35,6 @@ visualize = false;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
-
-info = struct;
 
 %% Load segmented MRI
 % TODO add support for var instead of path
@@ -49,6 +50,7 @@ cfg.method     = 'hexahedral';
 cfg.downsample = 2; % TODO test no downsample
 % cfg.resolution = 1; % in mm, tutorial
 % TODO is cfg.resolution forbidden % ? maybe n of elements
+info.ft_prepare_mesh.cfg = cfg;
 mesh = ft_prepare_mesh(cfg, mriSegmented);
 
 %% visualize
@@ -67,6 +69,7 @@ end
 % 257th is reference electrode
 
 % TODO ? add: 'senstype', 'eeg'
+info.electrodes.template.path = elecTemplatePath;
 elec = ft_read_sens(elecTemplatePath);
 elec = ft_convert_units(elec, 'mm');
 
@@ -80,21 +83,23 @@ if ~visualize
 end
 
 %% 2 Align electrodes to individual space
-if allignElectrodes
+if alignElectrodes
     % (i) get fiducial points from FT elec template (is in norm space)
+    info.electrodes.realign.fid.template = "ft_read_sens('standard_1005.elc')";
     elec_norm = ft_read_sens('standard_1005.elc');
     Nas = elec_norm.chanpos(3,:);
     Rpa = elec_norm.chanpos(2,:);
     Lpa = elec_norm.chanpos(1,:);
     clear elec_norm
 
+    info.electrodes.realign.fid.norm2ind = norm2ind;
     % (iia) Allign fiducial points to ind space (with ft_warp_apply)
+    info.electrodes.realign.fid.alignMethod = 'ft_warp_apply';
     fid_aligned = ft_warp_apply(norm2ind, [Nas; Lpa; Rpa], 'homogeneous');
-    info.electrodes.realign.fidAlignMethod = 'ft_warp_apply';
 
     % (iib) Allign fiducial points to ind space (with ft_transform_geometry)
+    %info.electrodes.realign.fid.alignMethod = 'ft_transform_geometry';
     %fid_aligned = ft_transform_geometry(Config.norm2ind, [Nas; Lpa; Rpa]);
-    %info.electrodes.realign.fidAlignMethod = 'ft_transform_geometry';
 
     % (iii) Allign elec template to ind space
     cfg = struct;
@@ -106,7 +111,7 @@ if allignElectrodes
     cfg.template.unit = 'mm';
     cfg.fiducial = {'FidNz','FidT9','FidT10'};
     elec = ft_electroderealign(cfg, elec);
-    info.electrodes.realign.method = cfg.method;
+    info.electrodes.realign.ft_electroderealign.cfg = cfg;
     
     % (iv) Remove fiducial points
     elec.chantype = elec.chantype(4:end);
@@ -131,6 +136,7 @@ end
 cfg = struct;
 cfg.method = 'project';
 cfg.headshape = mesh;
+info.electrodes.project.ft_electroderealign.cfg = cfg;
 elecProjected = ft_electroderealign(cfg, elec);
 
 %% visualize
@@ -160,9 +166,7 @@ cfg.method = 'simbio';
 %cfg.duneuro_settings = ; % optional (see http://www.duneuro.org)
 
 [cfg.conductivity, cfg.tissuelabel] = get_conductivity(Config.mriSegmented.method, Config.mriSegmented.nLayers);
-info.headmodel.method = cfg.method;
-info.headmodel.conductivity = cfg.conductivity;
-info.headmodel.tissuelabel = cfg.tissuelabel;
+info.headmodel.ft_prepare_headmodel.cfg = cfg;
 headmodel = ft_prepare_headmodel(cfg, mesh);
 headmodel = ft_convert_units(headmodel, 'mm');
 
@@ -193,6 +197,7 @@ cfg.smooth = 0; % tutorial: 5
 %cfg.elec = elec;
 %cfg.headmodel = headmodel; TODO ?
 
+info.sourcemodel.ft_prepare_sourcemodel.cfg = cfg;
 sourcemodel = ft_prepare_sourcemodel(cfg);
 sourcemodel = ft_convert_units(sourcemodel,'mm');
 info.sourcemodel.n_sources = sum(sourcemodel.inside);
@@ -233,6 +238,7 @@ clear gray_mash;
 
 %% Leadfield
 %% 1 Compute transfer matrix
+info.leadfield.ft_prepare_vol_sens = true;
 [headmodel, elecProjected] = ft_prepare_vol_sens(headmodel, elec);
 
 %% 2 Compute leadfield
@@ -241,6 +247,7 @@ cfg.sourcemodel = sourcemodel;
 cfg.headmodel = headmodel;
 cfg.elec = elecProjected;
 % cfg.reducerank = 3; % tutorial
+info.leadfield.ft_prepare_leadfield.cfg = cfg;
 leadfield = ft_prepare_leadfield(cfg);
 
 %% Save data
