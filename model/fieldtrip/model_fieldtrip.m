@@ -22,10 +22,13 @@ check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
 check_required_field(Config.mriSegmented, 'nLayers');
+
 alignElectrodes = isfield(Config.mriSegmented, 'norm2ind');
-info.electrodes.realign.bool = alignElectrodes;
-if ~alignElectrodes
-    warning("[Config.norm2ind] missing. Assuming segmented MRI is in norm space.")
+info.electrodes.align.bool = alignElectrodes;
+if alignElectrodes
+    norm2ind = load_var_from_mat('norm2ind', Config.mriSegmented.norm2ind);
+else
+    warning("[Config.mriSegmented.norm2ind] missing. Assuming segmented MRI is in norm space.")
 end
 
 check_required_field(Config.path, 'output');
@@ -41,7 +44,6 @@ end
 % TODO add support for .nii mrtim file without added masks
 %mriSegmented = ft_read_mri(Config.mriSegmented.path);
 mriSegmented = load_var_from_mat('mriSegmented', Config.mriSegmented.path);
-norm2ind = load_var_from_mat('norm2ind', Config.mriSegmented.norm2ind);
 
 %% Create mesh
 cfg            = struct;

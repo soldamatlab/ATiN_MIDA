@@ -57,6 +57,7 @@ cfg.model.fieldtrip.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 cfg.model.fieldtrip.mriSegmented.path = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\03\segmentation\fieldtrip\mri_segmented.mat'];
 cfg.model.fieldtrip.mriSegmented.method = 'fieldtrip';
 cfg.model.fieldtrip.mriSegmented.nLayers = 5;
+cfg.model.fieldtrip.mriSegmented.norm2ind = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\03\segmentation\fieldtrip\norm2ind.mat'];
 
 % (ii) path to a MRI segmented by MR-TIM (6 or 12 layers)
 %cfg.model.fieldtrip.mriSegmented.path = [dataPath '\out\pipeline_test\ANDROVICOVA_RENATA\03\segmentation\mrtim\mri_segmented.mat'];
