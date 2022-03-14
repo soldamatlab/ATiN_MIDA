@@ -64,7 +64,7 @@ cfg.nonlinear = 'no';
 cfg.spmversion = 'spm12';
 mriNormalised = ft_volumenormalise(cfg, mriResliced);
 %ind2norm = mriNormalised.params.Affine; % same as 'mriNormalised.cfg.spmparams.Affine'
-ind2norm = mriNormalise.initial;
+ind2norm = mriNormalised.initial;
 norm2ind = ind2norm^-1;
 
 %% visualize

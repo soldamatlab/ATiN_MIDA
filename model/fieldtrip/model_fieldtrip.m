@@ -2,7 +2,7 @@ function [] = model_fieldtrip(Config)
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '/../../common']);
+addpath([wd '\..\..\common']);
 
 %% Innit FieldTrip
 check_required_field(Config, 'path');
@@ -70,12 +70,12 @@ end
 
 % TODO ? add: 'senstype', 'eeg'
 info.electrodes.template.path = elecTemplatePath;
-elec = ft_read_sens(elecTemplatePath);
-elec = ft_convert_units(elec, 'mm');
+elecTemplate = ft_read_sens(elecTemplatePath);
+elecTemplate = ft_convert_units(elecTemplate, 'mm');
 
 %% visualize
 fig = figure;
-ft_plot_sens(elec)
+ft_plot_sens(elecTemplate)
 set(fig, 'Name', 'Electrodes - template')
 print([imgPath '\elec_template'],'-dpng','-r300')
 if ~visualize
@@ -86,10 +86,10 @@ end
 if alignElectrodes
     % (i) get fiducial points from FT elec template (is in norm space)
     info.electrodes.realign.fid.template = "ft_read_sens('standard_1005.elc')";
-    elec_norm = ft_read_sens('standard_1005.elc');
-    Nas = elec_norm.chanpos(3,:);
-    Rpa = elec_norm.chanpos(2,:);
-    Lpa = elec_norm.chanpos(1,:);
+    elecNorm = ft_read_sens('standard_1005.elc');
+    Nas = elecNorm.chanpos(3,:);
+    Rpa = elecNorm.chanpos(2,:);
+    Lpa = elecNorm.chanpos(1,:);
     clear elec_norm
 
     info.electrodes.realign.fid.norm2ind = norm2ind;
@@ -110,21 +110,15 @@ if alignElectrodes
     cfg.template.label = {'FidNz', 'FidT9', 'FidT10'};
     cfg.template.unit = 'mm';
     cfg.fiducial = {'FidNz','FidT9','FidT10'};
-    elec = ft_electroderealign(cfg, elec);
     info.electrodes.realign.ft_electroderealign.cfg = cfg;
+    elecTemplate = ft_electroderealign(cfg, elecTemplate);
     
     % (iv) Remove fiducial points
-    elec.chantype = elec.chantype(4:end);
-    elec.chanunit = elec.chanunit(4:end);
-    elec.elecpos = elec.elecpos(4:end,:);
-    elec.label = elec.label(4:end);
-    elec.chanpos = elec.chanpos(4:end,:);
-    elec.cfg.channel = elec.cfg.channel(4:end);
-    elec.tra = elec.tra(4:end,4:end);
+    elecTemplate = remove_fids(elecTemplate);
 
     %% visualize
     fig = figure;
-    ft_plot_sens(elec)
+    ft_plot_sens(elecTemplate)
     set(fig, 'Name', 'Electrodes - aligned to individual space')
     print([imgPath '\elec_aligned'],'-dpng','-r300')
     if ~visualize
@@ -137,7 +131,7 @@ cfg = struct;
 cfg.method = 'project';
 cfg.headshape = mesh;
 info.electrodes.project.ft_electroderealign.cfg = cfg;
-elecProjected = ft_electroderealign(cfg, elec);
+elecProjected = ft_electroderealign(cfg, elecTemplate);
 
 %% visualize
 fig = figure;
@@ -148,7 +142,7 @@ if ~visualize
     close(fig)
 end
 %%
-fig = plot_electrodes_aligned(mesh, elecProjected, elec);
+fig = plot_electrodes_aligned(mesh, elecProjected, elecTemplate);
 print([imgPath '\elec_projection'],'-dpng')
 if ~visualize
     close(fig)
@@ -157,10 +151,10 @@ end
 %% Create head model
 cfg = struct;
 
-% (i) Simbio % see doc ft_headmodel_simbio
+% (a) Simbio % see doc ft_headmodel_simbio
 cfg.method = 'simbio';
 
-% (ii) DUNEuro % see doc ft_headmodel_duneuro
+% (b) DUNEuro % see doc ft_headmodel_duneuro
 % ! works only on Linux machines
 %cfg.method = 'duneuro';
 %cfg.duneuro_settings = ; % optional (see http://www.duneuro.org)
@@ -239,23 +233,23 @@ clear gray_mash;
 %% Leadfield
 %% 1 Compute transfer matrix
 info.leadfield.ft_prepare_vol_sens = true;
-[headmodel, elecProjected] = ft_prepare_vol_sens(headmodel, elec);
+[headmodel, elecProjected] = ft_prepare_vol_sens(headmodel, elecProjected);
 
 %% 2 Compute leadfield
 cfg = struct;
-cfg.sourcemodel = sourcemodel;
+cfg.grid = sourcemodel;
+%cfg.sourcemodel = sourcemodel;
 cfg.headmodel = headmodel;
-cfg.elec = elecProjected;
+cfg.elec = elecTemplate;
 % cfg.reducerank = 3; % tutorial
 info.leadfield.ft_prepare_leadfield.cfg = cfg;
-leadfield = ft_prepare_leadfield(cfg);
+sourcemodel = ft_prepare_leadfield(cfg);
 
 %% Save data
-save([outputPath '\elec'],'elec');
+save([outputPath '\elec'],'elecProjected');
 save([outputPath '\mesh'],'mesh');
 save([outputPath '\headmodel'],'headmodel');
 save([outputPath '\sourcemodel'],'sourcemodel');
-save([outputPath '\leadfield'],'leadfield');
 
 save([outputPath '\config'],'Config');
 save([outputPath '\info'],'info');
