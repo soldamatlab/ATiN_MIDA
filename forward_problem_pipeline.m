@@ -12,6 +12,10 @@ addpath([wd '\model\fieldtrip']);
 %% Config
 % TODO check number of segmentation and model methods
 outputPath = get_output_path(Config);
+if check_output_folder(outputPath)
+    return
+end
+
 segmentationPath = [outputPath '\segmentation'];
 segmentationFieldtripPath = [segmentationPath '\fieldtrip'];
 segmentationMrtimPath = [segmentationPath '\mrtim'];
@@ -27,7 +31,6 @@ Info = struct;
 Segmentation = struct;
 if isfield(Config, 'segmentation')
     if isfield(Config.segmentation, 'file')
-        disp("TEST") % TODO delete
         disp("SEGMENTATION: Loading segmented MRI from file.")
         Segmentation.file = Config.segmentation.file;
     end
@@ -65,6 +68,7 @@ if isfield(Config, 'model')
         for f = 1:numel(queueFields)
             fprintf("CONDUCTIVITY MODELING: Fieldtrip with segmented MRI from %s\n", queueFields{f})
             cfgModelFieldtrip.mriSegmented = SegQueue.(queueFields{f});
+            cfgModelFieldtrip.path.output = [modelFieldtripPath '\' queueFields{f} '_segmentation'];
             Info.model.fieldtrip.(queueFields{f}).finished = ...
             run_submodule(@model_fieldtrip, cfgModelFieldtrip, "FieldTrip conductivity modeling");
         end
