@@ -10,7 +10,7 @@ check_required_field(Config.path, 'fieldtrip');
 addpath(Config.path.fieldtrip)
 ft_defaults
 
-%% Config
+%% Check Config
 Info = struct;
 
 % load template to test the path
@@ -38,6 +38,7 @@ visualize = false;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
+save([outputPath '\config'], 'Config');
 
 %% Load segmented MRI
 % TODO add support for var instead of path
@@ -260,6 +261,5 @@ Info.leadfield.ft_prepare_leadfield.cfg = cfg;
 save([outputPath '\sourcemodel'], 'sourcemodel');
 
 %% Save info
-save([outputPath '\config'], 'Config');
 save([outputPath '\info'], 'Info');
 end

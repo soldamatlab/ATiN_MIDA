@@ -1,6 +1,6 @@
-function [outputPath] = get_output_path(Config)
+function [Config] = set_output_path(Config)
 if isfield(Config, 'outputPath')
-    outputPath = Config.outputPath;
+    % database structure fields won't be used for outputPath
     return
 end
 
@@ -14,6 +14,6 @@ else
     runName = sprintf('run_%s', datestr(now, 'yyyy-mm-dd-HHMM'));
 end
 
-outputPath = [Config.resultsPath '\' Config.analysisName '\' Config.dataName '\' runName];
+Config.outputPath = [Config.resultsPath '\' Config.analysisName '\' Config.dataName '\' runName];
 end
 

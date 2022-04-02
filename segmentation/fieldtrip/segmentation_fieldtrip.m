@@ -10,7 +10,7 @@ check_required_field(Config.path, 'fieldtrip');
 addpath(Config.path.fieldtrip)
 ft_defaults
 
-%% Config
+%% Check Config
 check_required_field(Config, 'mri');
 check_required_field(Config.path, 'output');
 [outputPath, imgPath] = create_output_folder(Config.path.output);
@@ -21,7 +21,7 @@ if isfield(Config, 'visualize')
 end
 
 Config.segmentation = 'FieldTrip';
-
+save([outputPath '\config'],'Config');
 %% Read MRI
 mriOriginal = ft_read_mri(Config.mri);
 mriOriginal.coordsys = 'acpc';
@@ -112,6 +112,4 @@ save([outputPath '\mri_resliced'],'mriResliced');
 save([outputPath '\mri_normalised'],'mriNormalised');
 save([outputPath '\norm2ind'],'norm2ind');
 save([outputPath '\mri_segmented'],'mriSegmented');
-
-save([outputPath '\config'],'Config');
 end

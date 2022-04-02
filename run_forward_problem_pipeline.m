@@ -1,3 +1,4 @@
+% This script demonstrates the use of 'forward_problem_pipeline' function.
 %% Innit
 clear variables
 close all
@@ -61,8 +62,7 @@ cfg.segmentation.fieldtrip.mri = mriPathIMA; % TODO add support for var instead 
 cfg.segmentation.mrtim.path.spm = spmPath;
 cfg.segmentation.mrtim.path.mrtim = mrtimPath;
 cfg.segmentation.mrtim.mri = mriPathNII;
-
-%% Segmentation - Brainstorm (TODO)
+cfg.segmentation.mrtim.nLayers = 12;
 
 %% ___ Model _____________________________________________________________
 % Uncomment one or more modeling methods below:
@@ -77,8 +77,6 @@ cfg.model.fieldtrip.path.fieldtrip = fieldtripPath;
 % Use 'all' to process all segmented MRIs from previous step.
 cfg.model.fieldtrip.mriSegmented = {'fieldtrip', 'mrtim'};
 %cfg.model.fieldtrip.mriSegmented = 'all';
-
-%% Model - Brainstorm (TODO)
 
 %% ___ Miscellaneous _____________________________________________________
 % If set, it will override all submodule 'visualize' options.
