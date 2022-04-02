@@ -1,6 +1,12 @@
-function [abort] = check_output_folder(outputPath)
+function [abort] = check_output_folder(outputPath, existingFolderDialog)
+if ~exist('existingFolderDialog', 'var')
+    existingFolderDialog = true;
+end
+
 if exist(outputPath, 'dir')
-    abort = existing_folder_dialog(outputPath);
+    if existingFolderDialog
+        abort = existing_folder_dialog(outputPath);
+    end
 else
     abort = false;
     if ~mkdir(outputPath)

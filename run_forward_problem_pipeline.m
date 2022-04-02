@@ -82,6 +82,10 @@ cfg.model.fieldtrip.mriSegmented = {'fieldtrip', 'mrtim'};
 % If set, it will override all submodule 'visualize' options.
 cfg.miscellaneous.visualize = true;
 
+% Disables user dialog in case of already existing output folder.
+% Useful for automatic runs of the pipeline.
+%cfg.miscellaneous.dialog = false;
+
 % Useful for manual run of parts of the pipeline:
 %Config = cfg; clear cfg;
 

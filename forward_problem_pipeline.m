@@ -12,7 +12,8 @@ addpath([wd '\model\fieldtrip']);
 
 %% Config
 Config = set_output_path(Config);
-if check_output_folder(Config.outputPath)
+Config = set_dialog_config(Config);
+if check_output_folder(Config.outputPath, Config.miscellaneous.dialog)
     return
 end
 Config = set_paths(Config);
