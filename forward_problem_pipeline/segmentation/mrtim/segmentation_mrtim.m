@@ -38,22 +38,8 @@ save([outputPath '\config'], 'Config');
 addpath(Config.path.spm)
 spm('defaults', 'FMRI');
 
-%% Setup matlabbatch
-if isfield(Config, 'batch')
-    matlabbatch{1}.spm.tools.spm_mrtim.run.anat_image = {Config.mri};
-    matlabbatch{1}.spm.tools.spm_mrtim.run.output_folder = {outputPath};
-else
-    if isfield(Config, 'mrtim')
-        Mrtim = fill_mrtim_defaults(Config.mrtim, Config.path.mrtim, Config.nLayers);
-    else
-        Mrtim = mrtim_defaults(Config.path.mrtim, Config.nLayers);
-    end
-    Mrtim.run.anat_image = {Config.mri};
-    Mrtim.run.output_folder = {outputPath};
-    matlabbatch{1}.spm.tools.spm_mrtim = Mrtim;
-end
-
 %% Run SPM
+matlabbatch = setup_matlabbatch(Config);
 spm_jobman('run', matlabbatch);
 
 %% Create segmented MRI with segmentation masks

@@ -14,7 +14,7 @@ mrtimPath = [matlabroot '\toolbox\spm12\toolbox\MRTIM'];
 dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data';
 mriDataPath = [dataPath '\data\MR\ANDROVICOVA_RENATA_8753138768\HEAD_VP03_GTEN_20181204_120528_089000\T1_SAG_MPR_3D_1MM_ISO_P2_0002'];
 mriPathIMA = [mriDataPath '\ANDROVICOVA_RENATA.MR.HEAD_VP03_GTEN.0002.0001.2018.12.12.08.59.13.218838.497728628.IMA'];
-mriPathNII = [mriDataPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_p2_20181204120528_2.nii,1'];
+mriPathNII = [mriDataPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_p2_20181204120528_2.nii'];
 
 %% Output path
 % Define database structure:
