@@ -11,12 +11,12 @@ tissuesPath = [mrtimPath '\external\NET\template\tissues_MNI'];
 tpmPath = [tissuesPath '\' TPM12]; % choose TPM6 or TPM12
 
 %% Load TPM
-tmp = ft_read_mri(tpmPath);
+tpm = ft_read_mri(tpmPath);
 
 %% Extract a tissue [tissueNumber]
 tissueNumber = 1; % choose from 1-6 or 1-12
 
-tissue = tmp;
+tissue = tpm;
 tissue.dim = tissue.dim(1:3);
 tissue.anatomy = tissue.anatomy(:,:,:,tissueNumber);
 
