@@ -1,30 +1,30 @@
 function [configSegmentation] = segmentation2config(segmentationMethod, folderPath, nLayers)
 %% Constants
-fieldtripFileName = 'mri_segmented.mat'; % TODO move filenames to const file
-mrtimFileName = 'mri_segmented.mat';
+FT_FILE_NAME = 'mri_segmented.mat'; % TODO move filenames to const file
+MRTIM_FILE_NAME = 'mri_segmented.mat';
 
-fieldtripDefaultNLayers = 5; % TODO move to const file
-mrtimDefaultNLayers = 12;
+FT_DEFAULT_NLAYERS = 5; % TODO move to const file
+MRTIM_DEFAULT_NLAYERS = 12;
 
 %% Function Body
 configSegmentation = struct;
 configSegmentation.method = segmentationMethod;
 
 if segmentationMethod == "fieldtrip"
-    configSegmentation.path = [folderPath '\' fieldtripFileName];    
+    configSegmentation.path = [folderPath '\' FT_FILE_NAME];    
 elseif segmentationMethod == "mrtim"
-    configSegmentation.path = [folderPath '\' mrtimFileName];
+    configSegmentation.path = [folderPath '\' MRTIM_FILE_NAME];
 end
 
 if exist('nLayers','var')
     configSegmentation.nLayers = nLayers;
 else
     if segmentationMethod == "fieldtrip"
-        default_nlayers_warning(fieldtripDefaultNLayers, segmentationMethod)
-        configSegmentation.nLayers = fieldtripDefaultNLayers;  
+        default_nlayers_warning(FT_DEFAULT_NLAYERS, segmentationMethod)
+        configSegmentation.nLayers = FT_DEFAULT_NLAYERS;  
     elseif segmentationMethod == "mrtim"
-        default_nlayers_warning(mrtimDefaultNLayers, segmentationMethod)
-        configSegmentation.nLayers = mrtimDefaultNLayers;
+        default_nlayers_warning(MRTIM_DEFAULT_NLAYERS, segmentationMethod)
+        configSegmentation.nLayers = MRTIM_DEFAULT_NLAYERS;
     end
 end
 end

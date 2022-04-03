@@ -10,11 +10,12 @@ wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
 addpath([wd '/../../common']);
 
-%% Check Config
+%% Config
 check_required_field(Config, 'path');
 check_required_field(Config.path, 'spm');
 check_required_field(Config.path, 'mrtim');
 check_required_field(Config.path, 'output');
+Config = set_nlayers(Config);
 
 if isfield(Config, 'batch')
     load(Config.batch, 'matlabbatch');
@@ -31,6 +32,7 @@ if isfield(Config, 'visualize')
 end
 
 Config.segmentation = 'mrtim';
+save([outputPath '\config'], 'Config');
 
 %% Innit SPM
 addpath(Config.path.spm)
@@ -42,9 +44,9 @@ if isfield(Config, 'batch')
     matlabbatch{1}.spm.tools.spm_mrtim.run.output_folder = {outputPath};
 else
     if isfield(Config, 'mrtim')
-        Mrtim = fill_mrtim_defaults(Config.mrtim, Config.path.mrtim);
+        Mrtim = fill_mrtim_defaults(Config.mrtim, Config.path.mrtim, Config.nLayers);
     else
-        Mrtim = mrtim_defaults(Config.path.mrtim);
+        Mrtim = mrtim_defaults(Config.path.mrtim, Config.nLayers);
     end
     Mrtim.run.anat_image = {Config.mri};
     Mrtim.run.output_folder = {outputPath};
@@ -56,10 +58,9 @@ spm_jobman('run', matlabbatch);
 
 %% Create segmented MRI with segmentation masks
 mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segment.nii']);
-mriSegmented = mrtim_add_segmentation_masks(mriSegmented, 12); % TODO implement 6 layers
+mriSegmented = add_segmentation_masks(mriSegmented, Config.nLayers);
 
 %% Plot images and save additional files
-save([outputPath '\config'], 'Config');
 save([outputPath '\mri_segmented'], 'mriSegmented');
 
 cfg.outputPath = outputPath;

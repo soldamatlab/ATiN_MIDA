@@ -1,7 +1,8 @@
-function [mriSegmented] = mrtim_add_segmentation_masks(mriSegmented, nLayers)
-%MRTIM_TO_DATATYPE_SEGMENTATION
-% [nLayers] needs to be 6 or 12 (output of MR-TIM toolbox has 6 or 12 layers)
-
+function [mriSegmented] = add_segmentation_masks(mriSegmented, nLayers)
+%ADD_SEGMENTATION_MASKS
+%   [nLayers] needs to be 6 or 12
+%   (output of MR-TIM toolbox has 6 or 12 layers)
+%
 %From MR-TIM documentation:
 %anatomy_prepro_segment.nii: tissue classification image, with voxel values in the range 0 to 12
 %(optionally, label -1 if Gap filling parameter was set to No)

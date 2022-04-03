@@ -1,7 +1,9 @@
-function [Mrtim] = fill_mrtim_defaults(Mrtim, mrtimPath)
-
-DefaultMrtim = mrtim_defaults(mrtimPath);
-
+function [Mrtim] = fill_mrtim_defaults(Mrtim, mrtimPath, nLayers)
+%FILL_MRTIM_DEFAULTS takes [Mrtim] config for MR-TIM toolbox and fills
+%   missing essential settings with default values from 'mrtim_defaults.m'.
+%   
+%   Always uses TPM (tissue probability map) according to given [nLayers]
+%   value.
 if ~isfield(Mrtim, 'run')
     Mrtim.run = DefaultMrtim.run;
 else
@@ -54,5 +56,7 @@ else
         end
     end
 end
+
+Mrtim.run.tpmopt.tpmimg = {get_tpm(mrtimPath, nLayers)};
 end
 

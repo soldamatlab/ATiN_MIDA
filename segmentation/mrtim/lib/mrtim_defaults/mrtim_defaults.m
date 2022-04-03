@@ -1,4 +1,4 @@
-function [Mrtim] = mrtim_defaults(mrtimPath)
+    function [Mrtim] = mrtim_defaults(mrtimPath, nLayers)
 %MRTIM_DEFAULTS defindes default settings of MR-TIM
 
     % NO DEFAULTS:
@@ -11,7 +11,7 @@ function [Mrtim] = mrtim_defaults(mrtimPath)
     Mrtim.run.prepro.biasfwhm = 30;
     Mrtim.run.prepro.lowint = 5;
 
-    Mrtim.run.tpmopt.tpmimg = {[mrtimPath '\external\NET\template\tissues_MNI\eTPM12.nii,1']};
+    Mrtim.run.tpmopt.tpmimg = {get_tpm(mrtimPath, nLayers)};
     Mrtim.run.tpmopt.mrf = 1;
     Mrtim.run.tpmopt.cleanup = 1;
 
