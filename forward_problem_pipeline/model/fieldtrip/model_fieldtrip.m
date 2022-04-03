@@ -2,7 +2,7 @@ function [] = model_fieldtrip(Config)
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '\..\..\common']);
+addpath([wd '\..\..\..\common']);
 
 %% Innit FieldTrip
 check_required_field(Config, 'path');
@@ -31,8 +31,8 @@ else
     warning("[Config.mriSegmented.norm2ind] missing. Assuming segmented MRI is in norm space.")
 end
 
-check_required_field(Config.path, 'output');
-[outputPath, imgPath] = create_output_folder(Config.path.output);
+check_required_field(Config, 'output');
+[outputPath, imgPath] = create_output_folder(Config.output);
 
 visualize = false;
 if isfield(Config, 'visualize')

@@ -8,13 +8,13 @@ function [] = segmentation_mrtim(Config)
 %% Import source code
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '/../../common']);
+addpath([wd '\..\..\..\common']);
 
 %% Config
 check_required_field(Config, 'path');
 check_required_field(Config.path, 'spm');
 check_required_field(Config.path, 'mrtim');
-check_required_field(Config.path, 'output');
+check_required_field(Config, 'output');
 Config = set_nlayers(Config);
 
 if isfield(Config, 'batch')
@@ -24,7 +24,7 @@ else
     Config = set_mri_path(Config);
 end
 
-[outputPath, imgPath] = create_output_folder(Config.path.output);
+[outputPath, imgPath] = create_output_folder(Config.output);
 
 visualize = false;
 if isfield(Config, 'visualize')

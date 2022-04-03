@@ -2,7 +2,7 @@ function [mriSegmented] = segmentation_fieldtrip(Config)
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '\..\..\common']);
+addpath([wd '\..\..\..\common']);
 
 %% Innit FieldTrip
 check_required_field(Config, 'path');
@@ -12,8 +12,8 @@ ft_defaults
 
 %% Check Config
 check_required_field(Config, 'mri');
-check_required_field(Config.path, 'output');
-[outputPath, imgPath] = create_output_folder(Config.path.output);
+check_required_field(Config, 'output');
+[outputPath, imgPath] = create_output_folder(Config.output);
 
 visualize = false;
 if isfield(Config, 'visualize')
@@ -122,13 +122,13 @@ cfg.output         = {'scalp','skull','csf','gray','white'};
 
 % ! assumes 'mm', seems to work with mri in 'cm' too
 mriSegmented = ft_volumesegment(cfg, mriPrepro);
-%save([outputPath '\mri_segmented'],'mriSegmented');
+save([outputPath '\mri_segmented'],'mriSegmented');
 
 %% visualize
 seg_i = ft_datatype_segmentation(mriSegmented, 'segmentationstyle', 'indexed');
 
 cfg              = struct;
-cfg.funparameter = 'tissue';
+cfg.funparameter = 'seg';
 cfg.funcolormap  = lines(6); % distinct color per tissue
 cfg.location     = 'center';
 % cfg.atlas        = seg_i;    % the segmentation can also be used as atlas

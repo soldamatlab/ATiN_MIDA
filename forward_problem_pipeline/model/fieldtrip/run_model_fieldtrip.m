@@ -9,7 +9,7 @@ cfg.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 
 outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\model_fieldtrip_test';
 run = '01';
-cfg.path.output = [outputPath '\' run];
+cfg.output = [outputPath '\' run];
 
 %% Segmented MRI
 dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out';
@@ -35,7 +35,7 @@ cfg.visualize = true;
 % Import here and skip '%% Import' in model_fieldtrip.m
 % (Active folder should be 'ATiN_MIDA_Matous_project\model\fieldtrip'.)
 %addpath(genpath('./'));
-%addpath('..\..\common');
+%addpath('..\..\..\common');
 
 % Comment initialization of [elecTemplatePath] in model_fieldtrip.m
 %elecTemplatePath = '..\data\elec_template\GSN-HydroCel-257.sfp';
