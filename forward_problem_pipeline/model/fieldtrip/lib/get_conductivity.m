@@ -1,5 +1,6 @@
 function [conductivity, tissueLabel] = get_conductivity(method, nLayers)
-addpath('./const');
+wd = fileparts(mfilename('fullpath'));
+addpath([wd '/const']);
 const_conductivity;
 
 if method == "fieldtrip"

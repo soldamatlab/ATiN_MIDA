@@ -42,7 +42,8 @@ end
 
 %% Reslice MRI
 cfg = struct;
-cfg.method = 'linear';
+cfg.method = 'flip';
+%cfg.method = 'linear';
 cfg.dim    = [256 350 350];
 mriPrepro = ft_volumereslice(cfg, mriOriginal);
 mriPrepro = ft_convert_units(mriPrepro,'mm');
@@ -125,10 +126,10 @@ mriSegmented = ft_volumesegment(cfg, mriPrepro);
 save([outputPath '\mri_segmented'],'mriSegmented');
 
 %% visualize
-seg_i = ft_datatype_segmentation(mriSegmented, 'segmentationstyle', 'indexed');
-
+seg_i = ft_datatype_segmentation(mriSegmentedFT, 'segmentationstyle', 'indexed');
+%%
 cfg              = struct;
-cfg.funparameter = 'seg';
+cfg.funparameter = 'tissue';
 cfg.funcolormap  = lines(6); % distinct color per tissue
 cfg.location     = 'center';
 % cfg.atlas        = seg_i;    % the segmentation can also be used as atlas
