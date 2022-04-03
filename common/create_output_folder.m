@@ -1,8 +1,13 @@
-function [outputPath, imgPath] = create_output_folder(outputPath)
-if exist(outputPath, 'dir')
-    error("Output folder with given / generated name already exists!")
+function [outputPath, imgPath] = create_output_folder(outputPath, allowExistingFolder)
+if ~exist('allowExistingFolder', 'var')
+    allowExistingFolder = false;
 end
-if ~mkdir(outputPath)
+
+if exist(outputPath, 'dir')
+    if ~allowExistingFolder
+        error("Output folder with given / generated name already exists!")
+    end
+elseif ~mkdir(outputPath)
     error("Could not create output folder!")
 end
 
