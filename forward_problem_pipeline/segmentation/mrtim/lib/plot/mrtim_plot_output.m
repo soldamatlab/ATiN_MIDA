@@ -68,7 +68,7 @@ if ~visualize
     close(fig)
 end
 
-%% Plot segmented tissues with MRI anatomy
+%% Plot segmented tissues with MRI anatomy % TODO use 'plot_segmentation.m'
 cfg = [];
 cfg.funparameter = 'tissue';
 cfg.funcolormap = [lines(6); prism(6); cool(1)];
@@ -81,16 +81,17 @@ if ~visualize
 end
 
 %% Load and plot tissue masks
-plot_mask('bGM',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('brainstem', tissueMasksPath, masksImgPath, visualize)
-plot_mask('bWM',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('cGM',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('compacta',  tissueMasksPath, masksImgPath, visualize)
-plot_mask('CSF',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('cWM',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('eyes',      tissueMasksPath, masksImgPath, visualize)
-plot_mask('fat',       tissueMasksPath, masksImgPath, visualize)
-plot_mask('muscle',    tissueMasksPath, masksImgPath, visualize)
-plot_mask('skin',      tissueMasksPath, masksImgPath, visualize)
-plot_mask('spongiosa', tissueMasksPath, masksImgPath, visualize)
+const_conductivity;
+mrtim_plot_mask(MRTIM_12_LABEL{1},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{2},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{3},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{4},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{5},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{6},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{7},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{8},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{9},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{10}, tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{11}, tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask(MRTIM_12_LABEL{12}, tissueMasksPath, masksImgPath, visualize)
 end

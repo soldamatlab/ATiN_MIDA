@@ -2,7 +2,7 @@ function [] = model_fieldtrip(Config)
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '\..\..\..\common']);
+addpath(genpath([wd '\..\..\..\common']));
 
 %% Innit FieldTrip
 check_required_field(Config, 'path');

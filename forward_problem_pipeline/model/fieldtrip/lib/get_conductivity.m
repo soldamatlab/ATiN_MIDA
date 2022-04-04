@@ -1,11 +1,9 @@
 function [conductivity, tissueLabel] = get_conductivity(method, nLayers)
-wd = fileparts(mfilename('fullpath'));
-addpath([wd '/const']);
 const_conductivity;
 
 if method == "fieldtrip"
     if nLayers == 5
-        conductivity = FIELDTRIP_5;
+        conductivity = FIELDTRIP_5_COND;
         tissueLabel = FIELDTRIP_5_LABEL;
         return
     end
@@ -15,12 +13,12 @@ end
 if method == "mrtim"
     if nLayers == 6
         error("segmentation [method] = 'mrtim' and [nLayers] = 6 not yet implemented.")
-        conductivity = MRTIM_6;
+        conductivity = MRTIM_6_COND;
         tissueLabel = MRTIM_6_LABEL;
         return
     end
     if nLayers == 12
-        conductivity = MRTIM_12;
+        conductivity = MRTIM_12_COND;
         tissueLabel = MRTIM_12_LABEL;
         return
     end

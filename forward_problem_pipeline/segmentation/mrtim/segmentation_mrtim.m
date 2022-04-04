@@ -8,7 +8,7 @@ function [] = segmentation_mrtim(Config)
 %% Import source code
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '\..\..\..\common']);
+addpath(genpath([wd '\..\..\..\common']));
 
 %% Config
 check_required_field(Config, 'path');

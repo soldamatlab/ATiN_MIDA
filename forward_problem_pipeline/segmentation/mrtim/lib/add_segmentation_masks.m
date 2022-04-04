@@ -20,25 +20,32 @@ function [mriSegmented] = add_segmentation_masks(mriSegmented, nLayers)
 %11: eyes
 %12: skin
 %-1: gap (no classification)
+const_conductivity;
 
 if nLayers == 6
     % TODO implement
     error("Conversion of 6 layer MR-TIM output is not yet implemented.");
+    mriSegmented.(MRTIM_6_LABEL{1})  = mriSegmented.anatomy == 1;
+    mriSegmented.(MRTIM_6_LABEL{2})  = mriSegmented.anatomy == 2;
+    mriSegmented.(MRTIM_6_LABEL{3})  = mriSegmented.anatomy == 3;
+    mriSegmented.(MRTIM_6_LABEL{4})  = mriSegmented.anatomy == 4;
+    mriSegmented.(MRTIM_6_LABEL{5})  = mriSegmented.anatomy == 5;
+    mriSegmented.(MRTIM_6_LABEL{6})  = mriSegmented.anatomy == 6;
 end
 
 if nLayers == 12
-    mriSegmented.bgm       = mriSegmented.anatomy == 1;
-    mriSegmented.cgm       = mriSegmented.anatomy == 2;
-    mriSegmented.bwm       = mriSegmented.anatomy == 3;
-    mriSegmented.cwm       = mriSegmented.anatomy == 4;
-    mriSegmented.brainstem = mriSegmented.anatomy == 5;
-    mriSegmented.csf       = mriSegmented.anatomy == 6;
-    mriSegmented.spongiosa = mriSegmented.anatomy == 7;
-    mriSegmented.compacta  = mriSegmented.anatomy == 8;
-    mriSegmented.muscle    = mriSegmented.anatomy == 9;
-    mriSegmented.fat       = mriSegmented.anatomy == 10;
-    mriSegmented.eyes      = mriSegmented.anatomy == 11;
-    mriSegmented.skin      = mriSegmented.anatomy == 12;
+    mriSegmented.(MRTIM_12_LABEL{1})  = mriSegmented.anatomy == 1;
+    mriSegmented.(MRTIM_12_LABEL{2})  = mriSegmented.anatomy == 2;
+    mriSegmented.(MRTIM_12_LABEL{3})  = mriSegmented.anatomy == 3;
+    mriSegmented.(MRTIM_12_LABEL{4})  = mriSegmented.anatomy == 4;
+    mriSegmented.(MRTIM_12_LABEL{5})  = mriSegmented.anatomy == 5;
+    mriSegmented.(MRTIM_12_LABEL{6})  = mriSegmented.anatomy == 6;
+    mriSegmented.(MRTIM_12_LABEL{7})  = mriSegmented.anatomy == 7;
+    mriSegmented.(MRTIM_12_LABEL{8})  = mriSegmented.anatomy == 8;
+    mriSegmented.(MRTIM_12_LABEL{9})  = mriSegmented.anatomy == 9;
+    mriSegmented.(MRTIM_12_LABEL{10}) = mriSegmented.anatomy == 10;
+    mriSegmented.(MRTIM_12_LABEL{11}) = mriSegmented.anatomy == 11;
+    mriSegmented.(MRTIM_12_LABEL{12}) = mriSegmented.anatomy == 12;
     return;
 end
 
