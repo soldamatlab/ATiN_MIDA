@@ -13,9 +13,10 @@ wd = fileparts(mfilename('fullpath'));
 addpath(genpath([wd '\..\..\..\common']));
 addpath([wd '\lib']);
 
-GT_PATH = [wd '\SCI_data\Segmentation\HeadSegmentation.nrrd'];
-GT_ANATOMY_PATH = [wd '\SCI_data\T1\T1_Corrected.nrrd'];
-MRI_PATH = [wd '\SCI_data\T1\patient\IM-0001-0001.dcm'];
+SCI_DATA_PATH = [wd '\..\..\..\data\SCI'];
+GT_PATH = [SCI_DATA_PATH '\Segmentation\HeadSegmentation.nrrd'];
+GT_ANATOMY_PATH = [SCI_DATA_PATH '\T1\T1_Corrected.nrrd'];
+MRI_PATH = [SCI_DATA_PATH '\T1\patient\IM-0001-0001.dcm'];
 const_conductivity;
 
 %% Config
