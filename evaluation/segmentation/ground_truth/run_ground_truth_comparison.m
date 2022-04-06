@@ -37,6 +37,7 @@ Path.result = [Path.output '\evaluation'];
 % See 'run_segmentation_fieldtrip.m'
 cfgFT = struct;
 cfgFT.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
+cfgFT.nLayers = 5;
 cfgFT.output = [Path.segmentationFT '_flip']; % output path as string
 cfgFT.mri = Path.mri;
 cfgFT.visualize = true;
@@ -45,7 +46,7 @@ addpath(Path.source.segmentationFT)
 mriSegmented = segmentation_fieldtrip(cfgFT);
 %%
 Info.segmentation.method = 'fieldtrip';
-Info.segmentation.nLayers = 5;
+Info.segmentation.nLayers = cfgFT.nLayers;
 Info.segmentation.path = [Path.segmentationFT '\mri_segmented.mat'];
 
 %% Segment MRI by MR-TIM
@@ -71,11 +72,13 @@ cfgGT.visualize = true;
 
 cfgGT.mriSegmented.method = Info.segmentation.method;
 cfgGT.mriSegmented.nLayers = Info.segmentation.nLayers;
-if Info.segmentation.nLayers == 5
+% TODO better
+if Info.segmentation.nLayers == 3
+    cfgGT.mriSegmented.colormap = lines(4);
+elseif Info.segmentation.nLayers == 5
     cfgGT.mriSegmented.colormap = lines(6);
 elseif Info.segmentation.nLayers == 12
     cfgGT.mriSegmented.colormap = [prism(3); lines(7); parula(2)]; % TODO
 end
-
 %%
-ground_truth_comparison(cfgGT, Info.segmentation.path);
+[segError, absError, relError] = ground_truth_comparison(cfgGT, Info.segmentation.path);

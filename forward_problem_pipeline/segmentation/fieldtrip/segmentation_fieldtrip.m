@@ -2,7 +2,7 @@ function [mriSegmented] = segmentation_fieldtrip(Config)
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
-addpath([wd '\..\..\..\common']);
+addpath(genpath([wd '\..\..\..\common']));
 
 %% Innit FieldTrip
 check_required_field(Config, 'path');
@@ -15,6 +15,17 @@ check_required_field(Config, 'mri');
 check_required_field(Config, 'output');
 [outputPath, imgPath] = create_output_folder(Config.output);
 
+SUPPORTED_NLAYERS = [3, 5];
+DEFAULT_NLAYERS = 5;
+if isfield(Config, 'nLayers')
+    if ~ismember(Config.nLayers, SUPPORTED_NLAYERS)
+        error("%d-layer segmentation not supported. Choose from 3 and 5.", Config.nLayers)
+    end
+else
+    Config.nLayers = DEFAULT_NLAYERS;
+    warning("[nLayers] not set. Using default number of layers (%d).", DEFAULT_NLAYERS)
+end
+
 visualize = false;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
@@ -22,6 +33,7 @@ end
 
 Config.segmentation = 'FieldTrip';
 save([outputPath '\config'],'Config');
+Info = struct;
 %% Read MRI
 mriOriginal = ft_read_mri(Config.mri);
 mriOriginal.coordsys = 'acpc';
@@ -45,6 +57,7 @@ cfg = struct;
 cfg.method = 'flip';
 %cfg.method = 'linear';
 cfg.dim    = [256 350 350];
+Info.ft_volumereslice.cfg = cfg;
 mriPrepro = ft_volumereslice(cfg, mriOriginal);
 mriPrepro = ft_convert_units(mriPrepro,'mm');
 
@@ -74,6 +87,7 @@ cfg.spmversion = 'spm12';
 %opts.fwhm     = 1;
 %cfg.opts = opts;
 
+Info.ft_volumebiascorrect.cfg = cfg;
 mriPrepro = ft_volumebiascorrect(cfg, mriPrepro);
 save([outputPath '\mri_prepro'],'mriPrepro');
 
@@ -93,6 +107,7 @@ end
 cfg = struct;
 cfg.nonlinear = 'no';
 cfg.spmversion = 'spm12';
+Info.ft_volumenormalise.cfg = cfg;
 mriNormalised = ft_volumenormalise(cfg, mriPrepro);
 save([outputPath '\mri_normalised'],'mriNormalised');
 
@@ -115,29 +130,29 @@ end
 %% FEM
 %% Segment the MRI
 cfg = struct;
-cfg.output         = {'scalp','skull','csf','gray','white'};
+if Config.nLayers == 3
+    cfg.output = {'brain',             'skull','scalp'};
+elseif Config.nLayers == 5
+    cfg.output = {'csf','white','gray','skull','scalp'};
+end
 % cfg.brainsmooth    = 1; % from the tutorial
 % cfg.scalpthreshold = 0.11;
 % cfg.skullthreshold = 0.15;
 % cfg.brainthreshold = 0.15;
 
 % ! assumes 'mm', seems to work with mri in 'cm' too
+Info.ft_volumesegment.cfg = cfg;
 mriSegmented = ft_volumesegment(cfg, mriPrepro);
 save([outputPath '\mri_segmented'],'mriSegmented');
 
 %% visualize
-seg_i = ft_datatype_segmentation(mriSegmentedFT, 'segmentationstyle', 'indexed');
-%%
-cfg              = struct;
-cfg.funparameter = 'tissue';
-cfg.funcolormap  = lines(6); % distinct color per tissue
-cfg.location     = 'center';
-% cfg.atlas        = seg_i;    % the segmentation can also be used as atlas
-fig = figure;
-ft_sourceplot(cfg, seg_i, mriPrepro);
-set(fig, 'Name', 'MRI segmented')
-print([imgPath '\mri_segmented'],'-dpng','-r300')
-if ~visualize
-    close(fig)
-end
+cfg = struct;
+cfg.colormap = lines(Config.nLayers + 1); % distinct color per tissue
+cfg.name = 'MRI segmented';
+cfg.save = [imgPath '\mri_segmented'];
+cfg.visualize = visualize;
+plot_segmentation(cfg, mriSegmented, mriPrepro)
+
+%% Save Info
+save([outputPath '\info'],'Info');
 end

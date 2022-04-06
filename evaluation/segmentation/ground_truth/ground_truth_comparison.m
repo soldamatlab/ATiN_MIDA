@@ -1,4 +1,4 @@
-function [] = ground_truth_comparison(Config, mriSegmented)
+function [segError, absError, relError] = ground_truth_comparison(Config, mriSegmented)
 % GROUND_TRUTH_COMPARISON compares MRI segmentation with an 8-layer
 % manually segmented MRI from SCI.
 % 
@@ -25,8 +25,9 @@ check_required_field(Config.path, 'fieldtrip');
 addpath(Config.path.fieldtrip);
 ft_defaults
 
-check_required_field(Config, 'output');
-[~, imgPath] = create_output_folder(Config.output);
+check_required_field(Config, 'output'); % TODO ? change
+segName = [Config.mriSegmented.method sprintf('%d',Config.mriSegmented.nLayers)];
+[~, imgPath] = create_output_folder([Config.output '\' segName], true);
 
 check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'method');
@@ -37,28 +38,16 @@ if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
-%% Load Segmented MRI
-if isstring(mriSegmented)
-    [~,~,ext] = fileparts(mriSegmented);
-    if ext == ".mat"
-        mriSegmented = load_var_from_mat('mriSegmented', mriSegmented);
-    elseif ext == ".nii" || ext == ".dcm" || ext == ".IMA"
-        mriSegmented = ft_read_mri(mriSegmented);
-    else
-        error("Unsupported filetype of segmented MRI.")
-    end
-end
-
-%% Load Original MRI
+%% Load MRIs
+mriSegmented = load_mri_anytype(mriSegmented);
 mriOriginal = ft_read_mri(MRI_PATH);
 
-%% Load Ground Truth
 cfg = struct;
 cfg.unit = mriOriginal.unit;
 groundTruth = load_nrrd_mri(GT_PATH, cfg);
 groundTruthAnatomy = load_nrrd_mri(GT_ANATOMY_PATH, cfg);
 
-% TODO fix tissue labels % TODO make into function
+% TODO make into function
 groundTruth.(SCI_LABEL{1}) = groundTruth.anatomy == 1;
 groundTruth.(SCI_LABEL{2}) = groundTruth.anatomy == 2;
 groundTruth.(SCI_LABEL{3}) = groundTruth.anatomy == 3;
@@ -85,12 +74,11 @@ plot_segmentation(cfg, groundTruth, groundTruthAnatomy);
 
 %% Fix Resampling Differences
 % Fix flips and permutations of axis (works for FieldTrip and MR-TIM):
-if Config.mriSegmented.method == "fieldtrip"...
-        || Config.mriSegmented.method == "mrtim"
-mriSegmented.transform(2,:) = -mriSegmented.transform(2,:);
+if Config.mriSegmented.method == "fieldtrip" || Config.mriSegmented.method == "mrtim"
+    mriSegmented.transform(2,:) = -mriSegmented.transform(2,:);
 
-% Fix interpolation:
-% TODO !
+    % Fix interpolation:
+    % TODO !
 
 else % Default transformation
     warning("Segmentation methods other than FieldTrip and MR-TIM not tested. Applying default transformation to segmentation. Segmentation may not align with ground truth.")
@@ -116,7 +104,7 @@ absError = sum(segError, 'all');
 relError = absError / numel(segError);
 
 %% Save Results
-filename = [Config.output '\' Config.mriSegmented.method sprintf('%d',Config.mriSegmented.nLayers) '_result.mat'];
+filename = [Config.output '\' segName '_result.mat'];
 save(filename, 'absError', 'relError', 'segError', 'seg', 'truth', 'label', 'Config');
 end
 

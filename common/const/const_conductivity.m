@@ -9,8 +9,8 @@
 % Reordering labels requires fixing all usages too.
 
 % ___ FieldTrip 3 layers _________________________________________________
-FIELDTRIP_3_COND  = [0 0 0]; % TODO
-FIELDTRIP_3_LABEL = {'' '' ''};
+FIELDTRIP_3_COND  = [ 0.33    0.01    0.43];
+FIELDTRIP_3_LABEL = {'brain' 'skull' 'scalp'};
 
 % ___ FieldTrip 5 layers _________________________________________________
 % FIELDTRIP_5 = [0.43 0.0024 1.79 0.14 0.33]; % tutorial, same as tissuelabel in vol_simbio
