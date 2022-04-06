@@ -16,7 +16,6 @@ addpath([wd '\lib']);
 SCI_DATA_PATH = [wd '\..\..\..\data\SCI'];
 GT_PATH = [SCI_DATA_PATH '\Segmentation\HeadSegmentation.nrrd'];
 GT_ANATOMY_PATH = [SCI_DATA_PATH '\T1\T1_Corrected.nrrd'];
-MRI_PATH = [SCI_DATA_PATH '\T1\patient\IM-0001-0001.dcm'];
 const_conductivity;
 
 %% Config
@@ -27,7 +26,7 @@ ft_defaults
 
 check_required_field(Config, 'output'); % TODO ? change
 segName = [Config.mriSegmented.method sprintf('%d',Config.mriSegmented.nLayers)];
-[~, imgPath] = create_output_folder([Config.output '\' segName], true);
+[outPath, imgPath] = create_output_folder([Config.output '\' segName], true);
 
 check_required_field(Config, 'mriSegmented');
 check_required_field(Config.mriSegmented, 'method');
@@ -40,10 +39,9 @@ end
 
 %% Load MRIs
 mriSegmented = load_mri_anytype(mriSegmented);
-mriOriginal = ft_read_mri(MRI_PATH);
 
 cfg = struct;
-cfg.unit = mriOriginal.unit;
+cfg.unit = 'mm';
 groundTruth = load_nrrd_mri(GT_PATH, cfg);
 groundTruthAnatomy = load_nrrd_mri(GT_ANATOMY_PATH, cfg);
 
@@ -72,18 +70,26 @@ plot_segmentation(cfg, groundTruth, groundTruthAnatomy);
 %cfg.parameter = tissue;
 %fig = plot_mask(cfg, groundTruth);
 
-%% Fix Resampling Differences
+%% Fix Transform Matrices (for plotting)
 % Fix flips and permutations of axis (works for FieldTrip and MR-TIM):
-if Config.mriSegmented.method == "fieldtrip" || Config.mriSegmented.method == "mrtim"
-    mriSegmented.transform(2,:) = -mriSegmented.transform(2,:);
-
-    % Fix interpolation:
-    % TODO !
-
+if Config.mriSegmented.method == "fieldtrip"
+    %mriSegmented.transform(2,4) = -mriSegmented.transform(2,4);
+    mriSegmented.transform = eye(4);
+    groundTruth.transform = eye(4);
+    groundTruthAnatomy.transform = eye(4);
+elseif Config.mriSegmented.method == "mrtim"
+    %mriSegmented.transform(2,:) = -mriSegmented.transform(2,:);
+    mriSegmented.transform(2,4) = mriSegmented.transform(2,4)+3; % manually tried
+    mriSegmented.transform(3,4) = mriSegmented.transform(3,4)-13; % manually tried
 else % Default transformation
     warning("Segmentation methods other than FieldTrip and MR-TIM not tested. Applying default transformation to segmentation. Segmentation may not align with ground truth.")
     mriSegmented.transform(2,:) = -mriSegmented.transform(2,:);
 end
+
+%% Fix Tissue Masks
+mriSegmented = add_tissue(Config.mriSegmented, mriSegmented);
+mriSegmented.tissue = flip(mriSegmented.tissue, 2);
+mriSegmented = add_tissue_masks(Config.mriSegmented, mriSegmented);
 
 %% Visualize Segmented MRI
 cfg = struct;
@@ -103,8 +109,15 @@ segError = seg ~= truth;
 absError = sum(segError, 'all');
 relError = absError / numel(segError);
 
-%% Save Results
-filename = [Config.output '\' segName '_result.mat'];
-save(filename, 'absError', 'relError', 'segError', 'seg', 'truth', 'label', 'Config');
-end
+%% Print Results
+fprintf("Segmentation method: %s\n", Config.mriSegmented.method)
+fprintf("Number of layers:    %d\n", Config.mriSegmented.nLayers)
+fprintf("______________________________\n")
+fprintf("Absolute error:      %d voxels\n", absError)
+fprintf("Realtive error:      %f\n", relError)
 
+%% Save Results
+filename = [outPath '\' segName '_result.mat'];
+save(filename, 'absError', 'relError', 'segError', 'seg', 'truth', 'label', 'Config');
+
+end

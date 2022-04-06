@@ -1,4 +1,4 @@
-function [seg, truth] = match_layers_mrtim12(mriSegmented, groundTruth)
+function [seg, truth, label] = match_layers_mrtim12(mriSegmented, groundTruth)
 %% Load Constants
 const_conductivity;
 
