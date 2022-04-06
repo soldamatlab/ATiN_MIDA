@@ -1,4 +1,12 @@
 function [fig] = plot_segmentation(Config, mriSegmented, anatomy)
+% PLOT_SEGMENTATION
+% Options:
+% Config.location
+% Config.colormap
+% Config.visualize
+% Config.name
+% Config.save
+
 %% Defaults
 visualize = true;
 cfg = struct;

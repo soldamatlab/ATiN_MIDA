@@ -2,6 +2,10 @@ function [mri] = load_nrrd_mri(filename, Config)
 %% Defaults
 unit = 'mm';
 
+%% Import NRRD Read Write Rensonnet
+wd = fileparts(mfilename('fullpath'));
+addpath([wd '/../external/nrrd_read_write_rensonnet']);
+
 %% Config
 if exist('Config', 'var')
     if isfield(Config, 'unit')
