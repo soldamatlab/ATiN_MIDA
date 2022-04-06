@@ -1,8 +1,6 @@
 function [fig] = plot_mask(Config, mask)
 %% Load mask
-if isstring(mask)
-    mask = ft_read_mri(mask);
-end
+[mask] = load_mri_anytype(mask);
 
 %% Defaults
 visualize = true;

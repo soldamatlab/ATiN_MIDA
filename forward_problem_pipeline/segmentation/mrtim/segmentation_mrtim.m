@@ -31,7 +31,7 @@ if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
-Config.segmentation = 'mrtim';
+Config.method = 'mrtim';
 save([outputPath '\config'], 'Config');
 
 %% Innit SPM
@@ -44,7 +44,11 @@ spm_jobman('run', matlabbatch);
 
 %% Create segmented MRI with segmentation masks
 mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segment.nii']);
-mriSegmented = add_segmentation_masks(mriSegmented, Config.nLayers);
+%%
+mriSegmented.tissue = mriSegmented.anatomy;
+mriSegmented = rmfield(mriSegmented, 'anatomy');
+mriSegmented = add_tissue(Config, mriSegmented);
+mriSegmented = add_tissue_masks(Config, mriSegmented);
 
 %% Plot images and save additional files
 save([outputPath '\mri_segmented'], 'mriSegmented');

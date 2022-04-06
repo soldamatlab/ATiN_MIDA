@@ -58,27 +58,15 @@ segmentationIndexed = ft_datatype_segmentation(mriSegmented, 'segmentationstyle'
 
 %% Plot segmented tissues
 cfg = [];
-cfg.funparameter = 'anatomy';
-cfg.funcolormap = [lines(6); prism(6); cool(1)];
+cfg.colormap = [lines(6); prism(6); cool(1)];
 cfg.location = 'center';
-fig = figure;
-ft_sourceplot(cfg, segmentationIndexed);
-print([imgPath '\mri_segmented'],'-dpng','-r300')
-if ~visualize
-    close(fig)
-end
+cfg.visualize = visualize;
 
-%% Plot segmented tissues with MRI anatomy % TODO use 'plot_segmentation.m'
-cfg = [];
-cfg.funparameter = 'tissue';
-cfg.funcolormap = [lines(6); prism(6); cool(1)];
-cfg.location = 'center';
-fig = figure;
-ft_sourceplot(cfg, segmentationIndexed, mri);
-print([imgPath '\mri_segmented_anatomy'],'-dpng','-r300')
-if ~visualize
-    close(fig)
-end
+cfg.save = [imgPath '\mri_segmented'];
+plot_segmentation(cfg, segmentationIndexed);
+
+cfg.save = [imgPath '\mri_segmented_anatomy'];
+plot_segmentation(cfg, segmentationIndexed, mri);
 
 %% Load and plot tissue masks
 const_conductivity;
