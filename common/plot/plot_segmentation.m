@@ -11,7 +11,7 @@ function [fig] = plot_segmentation(Config, mriSegmented, anatomy)
 visualize = true;
 cfg = struct;
 cfg.location = 'center';
-cfg.funparameter = 'seg';
+cfg.funparameter = 'tissue';
 cfg.funcolormap  = lines;
 
 %% Config
