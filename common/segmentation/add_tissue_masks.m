@@ -4,14 +4,20 @@ wd = fileparts(mfilename('fullpath'));
 addpath([wd '/../']);
 
 %% Config
-Config = check_tissue_function_config(Config);
+if isfield(Config, 'label')
+    label = Config.label;
+elseif isfield(segmentation, 'tissuelabel')
+    label = segmentation.tissuelabel;
+else
+    Config = check_tissue_function_config(Config);
+    label = get_label(Config.method, Config.nLayers);
+end
 
 %% Add Masks
 if ~isfield(segmentation, 'tissue')
     error("Cannot add tissue masks. No field 'tissue' found.")
 end
 
-label = get_label(Config.method, Config.nLayers);
 for i = 1 : numel(label)
     segmentation.(label{i}) = segmentation.tissue == i;
 end

@@ -8,8 +8,13 @@ Config = check_tissue_function_config(Config);
 
 %%
 label = get_label(Config.method, Config.nLayers);
-if isfield(segmentation, label{1})
-    if ~isfield(segmentation, 'tissue')
+
+if masks_present(segmentation, label)
+    if isfield(segmentation, 'tissue')
+        if ~match_tissue_and_masks(segmentation, label)
+            error("Both 'tissue' and masks are present but don't match in dimensions.")
+        end
+    else
         segmentation = add_tissue(Config, segmentation);
     end
     return
