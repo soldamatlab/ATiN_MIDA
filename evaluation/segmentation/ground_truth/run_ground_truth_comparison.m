@@ -76,7 +76,7 @@ cfgGT.visualize = true;
 cfgGT.mriSegmented.method = Info.segmentation.method;
 cfgGT.mriSegmented.nLayers = Info.segmentation.nLayers;
 % TODO better
-if Info.segmentation.nLayers == 3
+if Info.segmentation.nLayers ==3
     cfgGT.mriSegmented.colormap = lines(4);
 elseif Info.segmentation.nLayers == 5
     cfgGT.mriSegmented.colormap = lines(6);
@@ -84,4 +84,4 @@ elseif Info.segmentation.nLayers == 12
     cfgGT.mriSegmented.colormap = [prism(3); lines(7); parula(2)]; % TODO
 end
 %%
-[segError, absError, relError] = ground_truth_comparison(cfgGT, Info.segmentation.mriSegmented, Info.segmetntation.mriPrepro);
+[Result, MaskResult] = ground_truth_comparison(cfgGT, Info.segmentation.mriSegmented, Info.segmentation.mriPrepro);

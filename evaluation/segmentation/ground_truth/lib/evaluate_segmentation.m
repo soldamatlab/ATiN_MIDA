@@ -1,4 +1,4 @@
-function [result] = evaluate_segmentation(segmentation, groundTruth)
+function [Result, MaskResult] = evaluate_segmentation(segmentation, groundTruth)
 %% Check Input
 check_required_field(segmentation, 'tissue');
 check_required_field(groundTruth, 'tissue');
@@ -15,31 +15,75 @@ label = groundTruth.tissuelabel;
 segmentation = ensure_masks(segmentation);
 groundTruth = ensure_masks(groundTruth);
 
-%% Evaluate
-result = struct;
-errorMesh = struct;
-absoluteError = struct;
-relativeError = struct;
-errorMesh.tissue = segmentation.tissue ~= groundTruth.tissue;
-absoluteError.tissue = sum(errorMesh.tissue, 'all');
-result.numel.tissue = numel(errorMesh.tissue);
-relativeError.tissue = absoluteError.tissue / result.numel.tissue;
+%% Tissue masks & Sums
+Result = struct;
+MaskResult = struct;
 
-absoluteError.maskSum = 0;
-result.numel.maskSum = 0;
-for l = 1:length(label)
-    errorMesh.(label{l}) = segmentation.(label{l}) ~= groundTruth.(label{l});
-    absoluteError.(label{l}) = sum(errorMesh.(label{l}), 'all');
-    absoluteError.maskSum = absoluteError.maskSum + absoluteError.(label{l});
+nTissues = length(label);
+for l = 1:nTissues
+    MaskResult.segmentation.(label{l}) = segmentation.(label{l});
+    Result.segmentation.(label{l}) = sum(segmentation.(label{l}), 'all');
+    MaskResult.groundTruth.(label{l}) = groundTruth.(label{l});
+    Result.groundTruth.(label{l}) = sum(groundTruth.(label{l}), 'all');
+end
+
+%% Extra & Absent
+for l = 1:nTissues   
+    % Extra (Segmentation - Ground Truth)
+    MaskResult.extra.(label{l}) = segmentation.(label{l}) & ~groundTruth.(label{l});
+    Result.extra.(label{l}) = sum(MaskResult.extra.(label{l}), 'all');
     
-    result.numel.(label{l}) = numel(errorMesh.(label{l}));
-    result.numel.maskSum = result.numel.maskSum + result.numel.(label{l});
-    relativeError.(label{l}) = absoluteError.(label{l}) / result.numel.(label{l});
+    % Absent (Ground Truth - Segmentation)
+    MaskResult.absent.(label{l}) = ~segmentation.(label{l}) & groundTruth.(label{l});
+    Result.absent.(label{l}) = sum(MaskResult.absent.(label{l}), 'all');
 end
-relativeError.maskSum = absoluteError.maskSum / result.numel.maskSum;
 
-result.errorMesh = errorMesh;
-result.absoluteError = absoluteError;
-result.relativeError = relativeError;
+%% Union & Intersection
+union = zeros(nTissues, nTissues);
+unionMask = cell(nTissues, nTissues);
+intersection = zeros(nTissues, nTissues);
+intersectionMask = cell(nTissues, nTissues);
+for seg = 1:nTissues
+    for gt = 1:nTissues
+        % Union
+        unionMask{seg, gt} = segmentation.(label{seg}) | groundTruth.(label{gt});
+        union(seg, gt) = sum(unionMask{seg, gt}, 'all');
+        
+        % Intersection
+        intersectionMask{seg, gt} = segmentation.(label{seg}) & groundTruth.(label{gt});
+        intersection(seg, gt) = sum(intersectionMask{seg, gt}, 'all');
+    end
 end
+Result.union = union;
+MaskResult.union = unionMask;
+Result.intersection = intersection;
+MaskResult.intersection = intersectionMask;
+
+%% Spatial Overlap index
+SO = zeros(nTissues, nTissues);
+for seg = 1:length(label)
+    for gt = 1:length(label)
+        SO(seg, gt) = intersection(seg, gt) / Result.groundTruth.(label{gt});
+    end
+end
+Result.spatialOverlap = SO;
+
+%% Dice index
+dice = zeros(nTissues, nTissues);
+for seg = 1:length(label)
+    for gt = 1:length(label)
+        denominator = Result.segmentation.(label{seg}) + Result.groundTruth.(label{gt});
+        dice(seg, gt) = 2 * intersection(seg, gt) / denominator;
+    end
+end
+Result.dice = dice;
+
+%% Jaccard index
+jaccard = zeros(nTissues, nTissues);
+for seg = 1:length(label)
+    for gt = 1:length(label)
+        jaccard(seg, gt) = intersection(seg, gt) / union(seg, gt);
+    end
+end
+Result.jaccard = jaccard;
 

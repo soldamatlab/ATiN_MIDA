@@ -5,7 +5,7 @@ const_conductivity;
 %% Create Matching Segmentations
 seg = zeros(size(groundTruth.tissue));
 truth = zeros(size(groundTruth.tissue));
-label = {'brain' 'other'};
+label = {'brain' 'other' 'background'};
 
 % brain
 seg(mriSegmented.(FIELDTRIP_3_LABEL{1})) = 1; % brain
@@ -20,5 +20,9 @@ truth(groundTruth.(SCI_LABEL{1})) = 2; % eyes
 truth(groundTruth.(SCI_LABEL{6})) = 2; % bone
 truth(groundTruth.(SCI_LABEL{5})) = 2; % cavity
 truth(groundTruth.(SCI_LABEL{7})) = 2; % soft
+
+% background
+seg(mriSegmented.tissue == 0) = 3;
+truth(groundTruth.(SCI_LABEL{8})) = 3;
 end
 

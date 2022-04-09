@@ -1,4 +1,4 @@
-function [segError, absError, relError] = ground_truth_comparison(Config, mriSegmented, mriPrepro)
+function [Result, MaskResult] = ground_truth_comparison(Config, mriSegmented, mriPrepro)
 % GROUND_TRUTH_COMPARISON compares MRI segmentation with an 8-layer
 % manually segmented MRI from SCI.
 % 
@@ -94,12 +94,26 @@ mriSegmented = interpolate_tissue(Config.mriSegmented, mriSegmented, groundTruth
 [mriSegmented, groundTruth] = match_layers(Config.mriSegmented, mriSegmented, groundTruth);
 
 %% Compare Segmented MRI with Ground Truth
-result = evaluate_segmentation(mriSegmented, groundTruth);
+[Result, MaskResult] = evaluate_segmentation(mriSegmented, groundTruth);
 
 %% Save Results
 filename = [outPath '\' segName '_result.mat'];
-save(filename, 'result', 'Config', 'mriSegmented', 'groundTruth');
+save(filename, 'Result', 'Config', 'mriSegmented', 'groundTruth');
 
-%% Print Results
-print_results(Config, result, groundTruth.tissuelabel);
+%% Plot Results
+cfg = struct;
+cfg.method = Config.mriSegmented.method;
+cfg.label = mriSegmented.tissuelabel;
+
+cfg.title = 'Spacial Overlap index';
+cfg.save = [imgPath '\spatial_overlap'];
+plot_index(cfg, Result.spatialOverlap);
+
+cfg.title = 'Dice index';
+cfg.save = [imgPath '\dice'];
+plot_index(cfg, Result.dice);
+
+cfg.title = 'Jaccard index';
+cfg.save = [imgPath '\jaccard'];
+plot_index(cfg, Result.jaccard);
 end

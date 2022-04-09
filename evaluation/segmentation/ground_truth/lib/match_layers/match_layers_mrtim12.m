@@ -5,7 +5,7 @@ const_conductivity;
 %% Create Matching Segmentations
 seg = zeros(size(groundTruth.tissue));
 truth = zeros(size(groundTruth.tissue));
-label = {'gray' 'white' 'csf' 'bone' 'soft' 'eyes'};
+label = {'gray' 'white' 'csf' 'bone' 'soft' 'eyes' 'sinus' 'background'};
 
 % Layers are joined the same way as MR-TIM authors did in Taberna2021.
 
@@ -43,5 +43,8 @@ truth(groundTruth.(SCI_LABEL{1})) = 6;
 % sinus
 truth(groundTruth.(SCI_LABEL{5})) = 7;
 
+% background
+seg(mriSegmented.tissue == 0) = 8;
+truth(groundTruth.(SCI_LABEL{8})) = 8;
 end
 
