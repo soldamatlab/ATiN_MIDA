@@ -70,12 +70,12 @@ plot_segmentation(cfg, segmentationIndexed, mri);
 
 %% Load and plot tissue masks
 const_conductivity;
-mrtim_plot_mask(MRTIM_12_LABEL{1},  tissueMasksPath, masksImgPath, visualize)
-mrtim_plot_mask(MRTIM_12_LABEL{2},  tissueMasksPath, masksImgPath, visualize)
-mrtim_plot_mask(MRTIM_12_LABEL{3},  tissueMasksPath, masksImgPath, visualize)
-mrtim_plot_mask(MRTIM_12_LABEL{4},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask('bGM',  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask('cGM',  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask('bWM',  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask('cWM',  tissueMasksPath, masksImgPath, visualize)
 mrtim_plot_mask(MRTIM_12_LABEL{5},  tissueMasksPath, masksImgPath, visualize)
-mrtim_plot_mask(MRTIM_12_LABEL{6},  tissueMasksPath, masksImgPath, visualize)
+mrtim_plot_mask('CSF',  tissueMasksPath, masksImgPath, visualize)
 mrtim_plot_mask(MRTIM_12_LABEL{7},  tissueMasksPath, masksImgPath, visualize)
 mrtim_plot_mask(MRTIM_12_LABEL{8},  tissueMasksPath, masksImgPath, visualize)
 mrtim_plot_mask(MRTIM_12_LABEL{9},  tissueMasksPath, masksImgPath, visualize)

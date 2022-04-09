@@ -13,12 +13,11 @@ if ~isfield(segmentation, 'tissuelabel')
     segmentation.tissuelabel = label;
 end
 
-if isfield(segmentation, 'tissue')
-    return
-end
-segmentation.tissue = zeros(size(segmentation.(label{1})));
-for i = 1 : numel(label)
-    segmentation.tissue(segmentation.(label{i})) = i;
+if ~isfield(segmentation, 'tissue')
+    segmentation.tissue = zeros(size(segmentation.(label{1})));
+    for i = 1 : numel(label)
+        segmentation.tissue(segmentation.(label{i})) = i;
+    end
 end
 end
 
