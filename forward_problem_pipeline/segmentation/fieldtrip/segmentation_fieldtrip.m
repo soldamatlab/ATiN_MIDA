@@ -31,12 +31,14 @@ if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 
-Config.segmentation = 'FieldTrip';
+Config.method = 'fieldtrip';
 save([outputPath '\config'],'Config');
 Info = struct;
 %% Read MRI
 mriOriginal = ft_read_mri(Config.mri);
-mriOriginal.coordsys = 'acpc';
+if isfield(Config, 'coordsys')
+    mriOriginal.coordsys = Config.coordsys;
+end
 save([outputPath '\mri_original'],'mriOriginal');
 
 %% visualize
@@ -54,8 +56,7 @@ end
 
 %% Reslice MRI
 cfg = struct;
-cfg.method = 'flip';
-%cfg.method = 'linear';
+cfg.method = 'linear';
 cfg.dim    = [256 350 350];
 Info.ft_volumereslice.cfg = cfg;
 mriPrepro = ft_volumereslice(cfg, mriOriginal);
@@ -143,6 +144,7 @@ end
 % ! assumes 'mm', seems to work with mri in 'cm' too
 Info.ft_volumesegment.cfg = cfg;
 mriSegmented = ft_volumesegment(cfg, mriPrepro);
+mriSegmented = ensure_tissue_and_masks(Config, mriSegmented);
 save([outputPath '\mri_segmented'],'mriSegmented');
 
 %% visualize
