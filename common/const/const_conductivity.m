@@ -37,7 +37,7 @@ MRTIM_6_LABEL = {'' '' '' '' '' ''};
 %12: skin
 %                  1     2     3     4     5           6     7           8          9        10    11     12
 MRTIM_12_COND  = [ 0.47  0.47  0.22  0.22  0.42        1.71  0.048       0.006      0.77     0.11  0.92   0.11 ];
-MRTIM_12_LABEL = {'bGM' 'cGM' 'bWM' 'cWM' 'brainstem' 'CSF' 'spongiosa' 'compacta' 'muscle' 'fat' 'eyes' 'skin'};
+MRTIM_12_LABEL = {'bgm' 'cgm' 'bwm' 'cwm' 'brainstem' 'csf' 'spongiosa' 'compacta' 'muscle' 'fat' 'eyes' 'skin'};
 % sources:
 % TODO ? better sources
 %
@@ -50,4 +50,4 @@ MRTIM_12_LABEL = {'bGM' 'cGM' 'bWM' 'cWM' 'brainstem' 'CSF' 'spongiosa' 'compact
 % ___ SCI Segmentation ___________________________________________________
 % Manually plotted and determined:
 %             1     2       3       4     5        6      7      8
-SCI_LABEL = {'eyes' 'gray' 'white' 'csf' 'cavity' 'bone' 'soft' 'background'};
+SCI_LABEL = {'eyes' 'gray' 'white' 'csf' 'sinus' 'bone' 'soft' 'background'};
