@@ -3,7 +3,7 @@ data = load(path);
 if isfield(data, varName)
     var = data.(varName);
 else
-    error(["File '" path "' does not contain variable named '" varName "'."])
+    error("File '%s' does not contain variable named '%s'.", path, varName)
 end
 end
 

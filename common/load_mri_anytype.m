@@ -1,9 +1,12 @@
-function [mri] = load_mri_anytype(mri)
+function [mri] = load_mri_anytype(mri, varName)
 mri = convertCharsToStrings(mri);
 if isstring(mri)
     [~,~,ext] = fileparts(mri);
     if ext == ".mat"
-        mri = load_var_from_mat('mriSegmented', mri);
+        if ~exist('varName', 'var')
+            error("[varName] has to be provided if [mri] is path to a '.mat' file.")
+        end
+        mri = load_var_from_mat(varName, mri);
     elseif ext == ".nii" || ext == ".dcm" || ext == ".IMA"
         mri = convertStringsToChars(mri);
         mri = ft_read_mri(mri);
