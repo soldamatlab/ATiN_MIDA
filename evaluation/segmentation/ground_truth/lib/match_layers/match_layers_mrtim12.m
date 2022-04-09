@@ -3,8 +3,8 @@ function [seg, truth, label] = match_layers_mrtim12(mriSegmented, groundTruth)
 const_conductivity;
 
 %% Create Matching Segmentations
-seg = zeros(size(groundTruth.anatomy));
-truth = zeros(size(groundTruth.anatomy));
+seg = zeros(size(groundTruth.tissue));
+truth = zeros(size(groundTruth.tissue));
 label = {'gray' 'white' 'csf' 'bone' 'soft' 'eyes'};
 
 % Layers are joined the same way as MR-TIM authors did in Taberna2021.

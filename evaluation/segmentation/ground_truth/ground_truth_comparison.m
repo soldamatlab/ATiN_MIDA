@@ -24,7 +24,7 @@ check_required_field(Config.path, 'fieldtrip');
 addpath(Config.path.fieldtrip);
 ft_defaults
 
-check_required_field(Config, 'output'); % TODO ? change
+check_required_field(Config, 'output');
 segName = [Config.mriSegmented.method sprintf('%d',Config.mriSegmented.nLayers)];
 [outPath, imgPath] = create_output_folder([Config.output '\' segName], true);
 
@@ -38,8 +38,8 @@ if isfield(Config, 'visualize')
 end
 
 %% Load MRIs
-mriSegmented = load_mri_anytype(mriSegmented);
-mriPrepro = load_mri_anytype(mriPrepro);
+mriSegmented = load_mri_anytype(mriSegmented, 'mriSegmented');
+mriPrepro = load_mri_anytype(mriPrepro, 'mriPrepro');
 
 cfg = struct;
 cfg.unit = 'mm';
@@ -70,7 +70,7 @@ plot_segmentation(cfg, groundTruth, groundTruthPrepro);
 %cfg.parameter = tissue;
 %fig = plot_mask(cfg, groundTruth);
 
-%% Allign Segmented MRI and Gournd Truth
+%% Allign Segmented MRI to Ground Truth
 cfg = struct;
 cfg.mriSegmented = mriSegmented;
 cfg.mriPrepro = mriPrepro;
@@ -87,24 +87,19 @@ if isfield(Config.mriSegmented, 'colormap')
 end
 plot_segmentation(cfg, mriSegmented, groundTruthPrepro);
 
-%% Join + Re-number Layers to Match
-[seg, truth, label] = match_layers(Config.mriSegmented, mriSegmented, groundTruth);
+%% Interpolate tissue meshes to match
+mriSegmented = interpolate_tissue(Config.mriSegmented, mriSegmented, groundTruth);
+
+%% Join + re-number layers to match
+[mriSegmented, groundTruth] = match_layers(Config.mriSegmented, mriSegmented, groundTruth);
 
 %% Compare Segmented MRI with Ground Truth
-segError = seg ~= truth;
-absError = sum(segError, 'all');
-relError = absError / numel(segError);
-
-%% Print Results
-fprintf("Segmentation method: %s\n", Config.mriSegmented.method)
-fprintf("Number of layers:    %d\n", Config.mriSegmented.nLayers)
-%%
-fprintf("______________________________\n")
-fprintf("Absolute error:      %d voxels\n", absError)
-fprintf("Realtive error:      %f\n", relError)
+result = evaluate_segmentation(mriSegmented, groundTruth);
 
 %% Save Results
 filename = [outPath '\' segName '_result.mat'];
-save(filename, 'absError', 'relError', 'segError', 'seg', 'truth', 'label', 'Config');
+save(filename, 'result', 'Config', 'mriSegmented', 'groundTruth');
 
+%% Print Results
+print_results(Config, result, groundTruth.tissuelabel);
 end

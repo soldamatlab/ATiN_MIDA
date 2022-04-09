@@ -1,4 +1,4 @@
-function [seg, truth, label] = match_layers(Config, mriSegmented, groundTruth)
+function [mriSegmented, groundTruth] = match_layers(Config, mriSegmented, groundTruth)
 %% Config
 check_required_field(Config, 'method');
 check_required_field(Config, 'nLayers');
@@ -24,5 +24,21 @@ elseif Config.method == "mrtim"
 else
     error("Only Fieldtrip and MR-TIM segmentation is implemented.")
 end
+
+%% Replace tissue fields
+mriSegmented.tissue = seg;
+groundTruth.tissue = truth;
+mriSegmented.tissuelabel = label;
+groundTruth.tissuelabel = label;
+
+mriSegmented = remove_tissue_masks(Config, mriSegmented);
+cfg = struct;
+cfg.method = 'SCI';
+groundTruth = remove_tissue_masks(cfg, groundTruth);
+
+cfg = struct;
+cfg.label = label;
+mriSegmented = add_tissue_masks(cfg, mriSegmented);
+groundTruth = add_tissue_masks(cfg, groundTruth);
 end
 

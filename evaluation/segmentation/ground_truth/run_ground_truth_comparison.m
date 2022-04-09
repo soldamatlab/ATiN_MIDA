@@ -6,6 +6,7 @@ Info = struct;
 
 %% Define paths
 %wd = fileparts(mfilename('fullpath')); % for automatic run
+%wd = './';
 wd = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project\evaluation\segmentation\ground_truth'; 
 Path = struct;
 
@@ -47,7 +48,8 @@ mriSegmented = segmentation_fieldtrip(cfgFT);
 %%
 Info.segmentation.method = 'fieldtrip';
 Info.segmentation.nLayers = cfgFT.nLayers;
-Info.segmentation.path = [Path.segmentationFT '\mri_segmented.mat'];
+Info.segmentation.mriSegmented = [Path.segmentationFT '\mri_segmented.mat'];
+Info.segmentation.mriPrepro = [Path.segmentationFT '\mri_prepro.mat'];
 
 %% Segment MRI by MR-TIM
 % See 'run_segmentation_mrtim.m'
@@ -62,7 +64,8 @@ segmentation_mrtim(cfgMRTIM);
 %%
 Info.segmentation.method = 'mrtim';
 Info.segmentation.nLayers = 12;
-Info.segmentation.path = [Path.segmentationMRTIM '\mri_segmented.mat'];
+Info.segmentation.mriSegmented = [Path.segmentationMRTIM '\mri_segmented.mat'];
+Info.segmentation.mriPrepro = [Path.segmentationMRTIM '\anatomy_prepro.nii']; % TODO ? anatomy_prepro_mni.nii
 
 %% Ground Truth Comaparison
 cfgGT = struct;
@@ -81,4 +84,4 @@ elseif Info.segmentation.nLayers == 12
     cfgGT.mriSegmented.colormap = [prism(3); lines(7); parula(2)]; % TODO
 end
 %%
-[segError, absError, relError] = ground_truth_comparison(cfgGT, Info.segmentation.path);
+[segError, absError, relError] = ground_truth_comparison(cfgGT, Info.segmentation.mriSegmented, Info.segmetntation.mriPrepro);
