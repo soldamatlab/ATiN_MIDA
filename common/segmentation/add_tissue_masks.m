@@ -4,8 +4,7 @@ wd = fileparts(mfilename('fullpath'));
 addpath([wd '/../']);
 
 %% Config
-check_required_field(Config, 'method')
-check_required_field(Config, 'nLayers')
+Config = check_tissue_function_config(Config);
 
 %% Add Masks
 if ~isfield(segmentation, 'tissue')

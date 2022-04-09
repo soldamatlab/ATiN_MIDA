@@ -18,6 +18,8 @@ elseif method == "mrtim"
     else
         error("Only 12-layer and 6-layer MR-TIM segmentation is supported.")
     end
+elseif method == "SCI"
+    label = SCI_LABEL;
 else
     error("Only Fieldtrip and MR-TIM segmentation is implemented.")
 end
