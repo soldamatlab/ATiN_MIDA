@@ -11,8 +11,9 @@ wd = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project\evaluatio
 Path = struct;
 
 % Data:
-Path.mri = [wd '\SCI_data\T1\patient\IM-0001-0001.dcm'];
-Path.mriNII = [wd '\SCI_data\T1\patientNII\mri.nii'];
+Path.data = [wd '\..\..\..\data'];
+Path.mri = [Path.data '\SCI\T1\patient\IM-0001-0001.dcm'];
+Path.mriNII = [Path.data '\SCI_data\T1\patientNII\mri.nii'];
 
 % Toolboxes:
 Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
@@ -38,8 +39,8 @@ Path.result = [Path.output '\evaluation'];
 % See 'run_segmentation_fieldtrip.m'
 cfgFT = struct;
 cfgFT.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
-cfgFT.nLayers = 5;
-cfgFT.output = [Path.segmentationFT '_flip']; % output path as string
+cfgFT.nLayers = 3;
+cfgFT.output = [Path.segmentationFT num2str(cfgFT.nLayers)]; % output path as string
 cfgFT.mri = Path.mri;
 cfgFT.visualize = true;
 
@@ -48,8 +49,8 @@ mriSegmented = segmentation_fieldtrip(cfgFT);
 %%
 Info.segmentation.method = 'fieldtrip';
 Info.segmentation.nLayers = cfgFT.nLayers;
-Info.segmentation.mriSegmented = [Path.segmentationFT '\mri_segmented.mat'];
-Info.segmentation.mriPrepro = [Path.segmentationFT '\mri_prepro.mat'];
+Info.segmentation.mriSegmented = [cfgFT.output '\mri_segmented.mat'];
+Info.segmentation.mriPrepro = [cfgFT.output '\mri_prepro.mat'];
 
 %% Segment MRI by MR-TIM
 % See 'run_segmentation_mrtim.m'
@@ -64,8 +65,8 @@ segmentation_mrtim(cfgMRTIM);
 %%
 Info.segmentation.method = 'mrtim';
 Info.segmentation.nLayers = 12;
-Info.segmentation.mriSegmented = [Path.segmentationMRTIM '\mri_segmented.mat'];
-Info.segmentation.mriPrepro = [Path.segmentationMRTIM '\anatomy_prepro.nii']; % TODO ? anatomy_prepro_mni.nii
+Info.segmentation.mriSegmented = [cfgMRTIM.output '\mri_segmented.mat'];
+Info.segmentation.mriPrepro = [cfgMRTIM.output '\anatomy_prepro.nii']; % TODO ? anatomy_prepro_mni.nii
 
 %% Ground Truth Comaparison
 cfgGT = struct;
@@ -76,7 +77,7 @@ cfgGT.visualize = true;
 cfgGT.mriSegmented.method = Info.segmentation.method;
 cfgGT.mriSegmented.nLayers = Info.segmentation.nLayers;
 % TODO better
-if Info.segmentation.nLayers ==3
+if Info.segmentation.nLayers == 3
     cfgGT.mriSegmented.colormap = lines(4);
 elseif Info.segmentation.nLayers == 5
     cfgGT.mriSegmented.colormap = lines(6);
