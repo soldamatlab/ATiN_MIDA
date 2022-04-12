@@ -1,4 +1,11 @@
 function [mriSegmented] = segmentation_fieldtrip(Config)
+%% SEGMENTATION_FIELDTRIP
+%
+% Config:
+% Config.coordsys   - if set will overwrite mri.coordsys with given value
+%
+% TODO
+
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
@@ -38,6 +45,10 @@ Info = struct;
 mriOriginal = ft_read_mri(Config.mri);
 if isfield(Config, 'coordsys')
     mriOriginal.coordsys = Config.coordsys;
+end
+if mriOriginal.coordsys == "scanras" % FT throws errors with scanras
+    mriOriginal.coordsys = 'acpc';
+    warning("Replacing MRI.coordsys 'scanras' with 'acpc'.")
 end
 save([outputPath '\mri_original'],'mriOriginal');
 
@@ -153,7 +164,7 @@ cfg.colormap = lines(Config.nLayers + 1); % distinct color per tissue
 cfg.name = 'MRI segmented';
 cfg.save = [imgPath '\mri_segmented'];
 cfg.visualize = visualize;
-plot_segmentation(cfg, mriSegmented, mriPrepro)
+plot_segmentation(cfg, mriSegmented, mriPrepro);
 
 %% Save Info
 save([outputPath '\info'],'Info');
