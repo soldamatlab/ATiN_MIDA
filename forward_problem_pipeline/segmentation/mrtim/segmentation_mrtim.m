@@ -1,5 +1,10 @@
 function [] = segmentation_mrtim(Config)
 %SEGMENTATION_MRTIM TODO description
+%   Required:
+%   TODO
+%
+%   Optional:
+%   Config.nLayers
 %   TODO
 %
 %   ! Calling 'restoredefaultpath' before this function will result in
@@ -14,6 +19,10 @@ addpath(genpath([wd '\..\..\..\common']));
 check_required_field(Config, 'path');
 check_required_field(Config.path, 'spm');
 check_required_field(Config.path, 'mrtim');
+check_required_field(Config.path, 'fieldtrip');
+addpath(Config.path.fieldtrip)
+ft_defaults
+
 check_required_field(Config, 'output');
 Config = set_nlayers(Config);
 

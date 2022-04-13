@@ -1,5 +1,5 @@
 %% Innit
-restoredefaultpath
+%restoredefaultpath
 clear variables
 close all
 cfg = struct;

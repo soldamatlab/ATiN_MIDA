@@ -7,7 +7,9 @@ else
 end
 
 for l = 1:length(label)
-    segmentation = rmfield(segmentation, label{l});
+    if isfield(segmentation, label{l})
+        segmentation = rmfield(segmentation, label{l});
+    end
 end
 end
 

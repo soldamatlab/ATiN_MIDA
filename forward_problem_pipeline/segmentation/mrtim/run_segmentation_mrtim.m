@@ -7,6 +7,7 @@ cfg = struct;
 %% Paths
 cfg.path.spm = [matlabroot '\toolbox\spm12'];
 cfg.path.mrtim = [matlabroot '\toolbox\spm12\toolbox\MRTIM'];
+cfg.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 
 outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\segmentation_mrtim_test';
 run = '01';

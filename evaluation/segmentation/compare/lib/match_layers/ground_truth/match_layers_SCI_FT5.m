@@ -1,4 +1,4 @@
-function [seg, truth, label] = match_layers_fieldtrip5(mriSegmented, groundTruth)
+function [seg, truth, label] = match_layers_SCI_FT5(mriSegmented, groundTruth)
 %% Load Constants
 const_conductivity;
 
