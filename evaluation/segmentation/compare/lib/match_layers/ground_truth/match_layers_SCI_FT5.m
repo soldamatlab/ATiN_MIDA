@@ -23,7 +23,7 @@ truth(groundTruth.(SCI_LABEL{4})) = 3;
 seg(mriSegmented.(FIELDTRIP_5_LABEL{4})) = 4; % bone
 seg(mriSegmented.(FIELDTRIP_5_LABEL{5})) = 4; % scalp
 truth(groundTruth.(SCI_LABEL{1})) = 4; % eyes
-truth(groundTruth.(SCI_LABEL{5})) = 4; % cavity
+truth(groundTruth.(SCI_LABEL{5})) = 4; % sinus
 truth(groundTruth.(SCI_LABEL{6})) = 4; % bone
 truth(groundTruth.(SCI_LABEL{7})) = 4; % soft
 

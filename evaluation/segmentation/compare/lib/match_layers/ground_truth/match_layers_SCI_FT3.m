@@ -18,7 +18,7 @@ seg(mriSegmented.(FIELDTRIP_3_LABEL{2})) = 2; % bone
 seg(mriSegmented.(FIELDTRIP_3_LABEL{3})) = 2; % scalp
 truth(groundTruth.(SCI_LABEL{1})) = 2; % eyes
 truth(groundTruth.(SCI_LABEL{6})) = 2; % bone
-truth(groundTruth.(SCI_LABEL{5})) = 2; % cavity
+truth(groundTruth.(SCI_LABEL{5})) = 2; % sinus
 truth(groundTruth.(SCI_LABEL{7})) = 2; % soft
 
 % background
