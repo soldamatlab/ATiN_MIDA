@@ -33,7 +33,7 @@ else
     Config = set_mri_path(Config);
 end
 
-[outputPath, imgPath] = create_output_folder(Config.output);
+[outputPath, imgPath] = create_output_folder([Config.output '\mrtim' num2str(Config.nLayers)]);
 
 visualize = false;
 if isfield(Config, 'visualize')

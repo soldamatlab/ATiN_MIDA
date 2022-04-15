@@ -20,7 +20,6 @@ ft_defaults
 %% Check Config
 check_required_field(Config, 'mri');
 check_required_field(Config, 'output');
-[outputPath, imgPath] = create_output_folder(Config.output);
 
 SUPPORTED_NLAYERS = [3, 5];
 DEFAULT_NLAYERS = 5;
@@ -32,6 +31,8 @@ else
     Config.nLayers = DEFAULT_NLAYERS;
     warning("[nLayers] not set. Using default number of layers (%d).", DEFAULT_NLAYERS)
 end
+
+[outputPath, imgPath] = create_output_folder([Config.output '\fieldtrip' num2str(Config.nLayers)]);
 
 visualize = false;
 if isfield(Config, 'visualize')

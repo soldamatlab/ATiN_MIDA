@@ -13,12 +13,12 @@ addpath([wd '\model\fieldtrip']);
 %% Config
 Config = set_output_path(Config);
 Config = set_dialog_config(Config);
-if check_output_folder(Config.outputPath, Config.miscellaneous.dialog)
+if check_output_folder(Config.output, Config.miscellaneous.dialog)
     return
 end
 Config = set_paths(Config);
 Config = set_visualize(Config);
-save([Config.outputPath '\config'],'Config');
+save([Config.output '\pipeline_config'],'Config');
 
 Info = struct;
 
@@ -66,7 +66,7 @@ if isfield(Config, 'model')
 end
 
 %% Save info
-save([Config.outputPath '\info'],'Info');
+save([Config.output '\pipeline_info'],'Info');
 
 end
 

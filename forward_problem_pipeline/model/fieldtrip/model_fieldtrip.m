@@ -32,7 +32,7 @@ else
 end
 
 check_required_field(Config, 'output');
-[outputPath, imgPath] = create_output_folder(Config.output);
+[outputPath, imgPath] = create_output_folder([Config.output '\fieldtrip']);
 
 visualize = false;
 if isfield(Config, 'visualize')
