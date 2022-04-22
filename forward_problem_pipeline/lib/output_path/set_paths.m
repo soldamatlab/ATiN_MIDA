@@ -5,13 +5,13 @@ if isfield(Config, 'segmentation')
         Config.segmentation.fieldtrip.output = segmentationPath;
     end
     if isfield(Config.segmentation, 'mrtim')
-        Config.segmentation.mrtim.output = segmentationPath '\mrtim';
+        Config.segmentation.mrtim.output = segmentationPath;
     end
 end
 if isfield(Config, 'model')
     modelPath = [Config.output '\model'];
     if isfield(Config.model, 'fieldtrip')
-        Config.model.fieldtrip.output = [modelPath '\fieldtrip'];
+        Config.model.fieldtrip.output = modelPath;
     end
 end
 end

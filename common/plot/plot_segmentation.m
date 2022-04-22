@@ -5,7 +5,7 @@ function [fig] = plot_segmentation(Config, mriSegmented, anatomy)
 % Config.colormap
 % Config.visualize
 % Config.name
-% Config.save
+% Config.save - string or array of strings (for multiple saves)
 
 %% Defaults
 visualize = true;
@@ -15,18 +15,16 @@ cfg.funparameter = 'tissue';
 cfg.funcolormap  = lines;
 
 %% Config
-if exist('Config', 'var')
-    if isfield(Config, 'visualize')
-        visualize = Config.visualize;
-    end
-    if isfield(Config, 'location')
-        cfg.location = Config.location;
-    end
-    if isfield(Config, 'colormap')
-        cfg.funcolormap = Config.colormap;
-    else
-        warning("Add 'Config.funcolormap' parameter. Using default color map - some layers may have the same color.")
-    end
+if isfield(Config, 'visualize')
+    visualize = Config.visualize;
+end
+if isfield(Config, 'location')
+    cfg.location = Config.location;
+end
+if isfield(Config, 'colormap')
+    cfg.funcolormap = Config.colormap;
+else
+    warning("Add 'Config.funcolormap' parameter. Using default color map - some layers may have the same color.")
 end
 
 %% Prepare Segmentation
@@ -45,7 +43,14 @@ end
 
 %% Save
 if isfield(Config, 'save')
-    print(Config.save, '-dpng', '-r300')
+    Config.save = convertCharsToStrings(Config.save);
+    for s = 1:length(Config.save)
+        if iscell(Config.save)
+            print(Config.save{s}, '-dpng', '-r300')
+        else
+            print(Config.save(s), '-dpng', '-r300')
+        end
+    end
 end
 if ~visualize
     close(fig)

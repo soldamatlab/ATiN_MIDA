@@ -20,8 +20,8 @@ mriPathNII = [mriDataPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_
 % Define database structure:
 % (Results will be saved in 'resultsPath\analysisName\dataName\runName'.)
 cfg.resultsPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out';
-cfg.analysisName = 'NUDZ';
-cfg.dataName = 'ANDROVICOVA_RENATA';
+cfg.dataName = 'NUDZ';
+cfg.subjectName = 'ANDROVICOVA_RENATA';
 %cfg.runName = '01';
 
 % or
@@ -80,11 +80,11 @@ cfg.model.fieldtrip.mriSegmented = {'fieldtrip', 'mrtim'};
 
 %% ___ Miscellaneous _____________________________________________________
 % If set, it will override all submodule 'visualize' options.
-cfg.miscellaneous.visualize = true;
+cfg.visualize = true;
 
 % Disables user dialog in case of already existing output folder.
 % Useful for automatic runs of the pipeline.
-%cfg.miscellaneous.dialog = false;
+%cfg.dialog = false;
 
 % Useful for manual run of parts of the pipeline:
 %Config = cfg; clear cfg;

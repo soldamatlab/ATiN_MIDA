@@ -1,11 +1,9 @@
 function [Config] = set_visualize(Config)
 inConfig = false;
-if isfield(Config, 'miscellaneous')
-    if isfield(Config.miscellaneous, 'visualize')
-        if islogical(Config.miscellaneous.visualize)
-            visualize = Config.miscellaneous.visualize;
-            inConfig = true;
-        end
+if isfield(Config, 'visualize')
+    if islogical(Config.visualize)
+        visualize = Config.visualize;
+        inConfig = true;
     end
 end
 

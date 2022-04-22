@@ -6,6 +6,8 @@ end
 if exist(outputPath, 'dir')
     if existingFolderDialog
         abort = existing_folder_dialog(outputPath);
+    else
+        abort = false;
     end
 else
     abort = false;

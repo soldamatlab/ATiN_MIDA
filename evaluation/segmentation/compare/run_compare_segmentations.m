@@ -12,11 +12,11 @@ addpath(genpath(wd));
 Path = struct;
 % Data:
 Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data';
-%Path.mri = [Path.data '\SCI\T1\patient\IM-0001-0001.dcm'];
-%Path.mriNII = [Path.data '\SCI\T1\patientNII\mri.nii'];
-Path.mriPath = [Path.data '\MR\ANDROVICOVA_RENATA_8753138768\HEAD_VP03_GTEN_20181204_120528_089000\T1_SAG_MPR_3D_1MM_ISO_P2_0002'];
-Path.mri = [Path.mriPath '\ANDROVICOVA_RENATA.MR.HEAD_VP03_GTEN.0002.0001.2018.12.12.08.59.13.218838.497728628.IMA'];
-Path.mriNII = [Path.mriPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_p2_20181204120528_2.nii'];
+Path.mri = [Path.data '\SCI\T1\patient\IM-0001-0001.dcm'];
+Path.mriNII = [Path.data '\SCI\T1\patient.nii'];
+%Path.mriPath = [Path.data '\MR\ANDROVICOVA_RENATA_8753138768\HEAD_VP03_GTEN_20181204_120528_089000\T1_SAG_MPR_3D_1MM_ISO_P2_0002'];
+%Path.mri = [Path.mriPath '\ANDROVICOVA_RENATA.MR.HEAD_VP03_GTEN.0002.0001.2018.12.12.08.59.13.218838.497728628.IMA'];
+%Path.mriNII = [Path.mriPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_p2_20181204120528_2.nii'];
 
 % Toolboxes:
 Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
@@ -32,7 +32,7 @@ Path.source.nrrd = [Path.source.root '\external\nrrd_read_write_rensonnet'];
 
 % Output:
 Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data';
-Path.output = [Path.data '\out\evaluation_segmentation\NUDZ_MRI'];
+Path.output = [Path.data '\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768'];
 Path.segmentation = [Path.output '\segmentation'];
 Path.segmentationFT = [Path.segmentation '\fieldtrip'];
 Path.segmentationMRTIM = [Path.segmentation '\mrtim'];

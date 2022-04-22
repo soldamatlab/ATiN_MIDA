@@ -1,11 +1,26 @@
 function [] = forward_problem_pipeline(Config)
 %FORWARD_PROBLEM_PIPELINE TODO Summary of this function
-%   TODO Detailed explanation
+%
+%   Required:
+%   Config.output - Output path as string. This option takes priority if both are present.
+%    or
+%   Config.resultsPath
+%   Config.dataName - Output path is then determined as [resultsPath\analysisName\dataName\runName]
+%   Config.subjectName
+%   Config.runName
+%
+%   Optional:
+%   TODO
+%
+%   Config.miscellaneous.visualize
+%   Config.miscellaneous.dialog - Disables user dialog in case of already existing output folder.
+%                                 Useful for automatic runs of the pipeline.
+%
 
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath([wd '\lib']));
-addpath([wd '\common']);
+addpath([wd '\..\common']);
 addpath([wd '\segmentation\fieldtrip']);
 addpath([wd '\segmentation\mrtim']);
 addpath([wd '\model\fieldtrip']);
@@ -13,7 +28,7 @@ addpath([wd '\model\fieldtrip']);
 %% Config
 Config = set_output_path(Config);
 Config = set_dialog_config(Config);
-if check_output_folder(Config.output, Config.miscellaneous.dialog)
+if check_output_folder(Config.output, Config.dialog)
     return
 end
 Config = set_paths(Config);
@@ -36,7 +51,9 @@ if isfield(Config, 'segmentation')
         disp("SEGMENTATION: FieldTrip")
         Info.segmentation.fieldtrip.finished = ...
         run_submodule(@segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
-        Segmentation.fieldtrip = segmentation2config('fieldtrip', Config.segmentation.fieldtrip.path.output);
+        if Info.segmentation.fieldtrip.finished
+            Segmentation.fieldtrip = segmentation2config('fieldtrip', Config.segmentation.fieldtrip.output);
+        end
     end
 
     %% MR-TIM
@@ -44,7 +61,9 @@ if isfield(Config, 'segmentation')
         disp("SEGMENTATION: MR-TIM")
         Info.segmentation.mrtim.finished = ...
         run_submodule(@segmentation_mrtim, Config.segmentation.mrtim, "MR-TIM segmentation");
-        Segmentation.mrtim = segmentation2config('mrtim', Config.segmentation.mrtim.path.output);
+        if Info.segmentation.mrtim.finished
+            Segmentation.mrtim = segmentation2config('mrtim', Config.segmentation.mrtim.output);
+        end
     end
 end
 
@@ -58,7 +77,7 @@ if isfield(Config, 'model')
         for f = 1:numel(queueFields)
             fprintf("CONDUCTIVITY MODELING: Fieldtrip with segmented MRI from %s\n", queueFields{f})
             cfgModelFieldtrip.mriSegmented = SegQueue.(queueFields{f});
-            cfgModelFieldtrip.path.output = [Config.model.fieldtrip.path.output '\' queueFields{f} '_segmentation'];
+            cfgModelFieldtrip.path.output = [Config.model.fieldtrip.output '\' queueFields{f} '_segmentation'];
             Info.model.fieldtrip.(queueFields{f}).finished = ...
             run_submodule(@model_fieldtrip, cfgModelFieldtrip, "FieldTrip conductivity modeling");
         end

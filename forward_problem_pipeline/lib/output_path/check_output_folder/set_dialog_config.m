@@ -1,11 +1,9 @@
 function [Config] = set_dialog_config(Config)
-if isfield(Config, 'miscellaneous')
-    if isfield(Config.miscellaneous, 'dialog')
-        return
-    end
+if isfield(Config, 'dialog')
+    return
 end
 
 % Default option:
-Config.miscellaneous.dialog = true;
+Config.dialog = true;
 end
 

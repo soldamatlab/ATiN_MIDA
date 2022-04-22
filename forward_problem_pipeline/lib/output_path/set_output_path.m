@@ -5,15 +5,25 @@ if isfield(Config, 'output')
 end
 
 check_required_field(Config, 'resultsPath');
-check_required_field(Config, 'analysisName');
 check_required_field(Config, 'dataName');
+check_required_field(Config, 'subjectName');
 
+runFolder = false;
 if isfield(Config, 'runName')
-    runName = Config.runName;
-else
-    runName = sprintf('run_%s', datestr(now, 'yyyy-mm-dd-HHMM'));
+    Config.runName = convertStringsToChars(Config.runName);
+    if ischar(Config.runName)
+        runName = Config.runName;
+        runFolder = true;
+    elseif isa(Config.runName, 'logical') && Config.runName
+        runName = sprintf('run_%s', datestr(now, 'yyyy-mm-dd-HHMM'));
+        runFolder = true;
+    end
 end
 
-Config.output = [Config.resultsPath '\' Config.analysisName '\' Config.dataName '\' runName];
+if runFolder
+    Config.output = [Config.resultsPath '\' Config.dataName '\' Config.subjectName '\' runName];
+else
+    Config.output = [Config.resultsPath '\' Config.dataName '\' Config.subjectName];
+end
 end
 
