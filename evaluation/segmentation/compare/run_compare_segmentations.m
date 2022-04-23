@@ -36,7 +36,7 @@ Path.output = [Path.data '\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768'];
 Path.segmentation = [Path.output '\segmentation'];
 Path.segmentationFT = [Path.segmentation '\fieldtrip'];
 Path.segmentationMRTIM = [Path.segmentation '\mrtim'];
-Path.result = [Path.output '\evaluation'];
+Path.result = [Path.segmentation '\evaluation'];
 
 %% Segment MRI by FieldTrip
 % See 'run_segmentation_fieldtrip.m'
