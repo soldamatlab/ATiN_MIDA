@@ -1,4 +1,13 @@
 function [fig] = plot_index(Config, data)
+% PLOT_INDEX
+%
+% Required:
+%   TODO
+%
+% Optional:
+%   Config.omit = cell array, include all tissue labels to omit
+%                 while plotting results (i.e. {'gray', 'white'})
+%   TODO
 %% Config
 if ~isfield(Config, 'method1')
     method1 = 'segmentation';
@@ -26,6 +35,24 @@ if isfield(Config, 'nLayers2')
     method2 = [char(method2) ' ' num2str(Config.nLayers2)]; 
 end
 
+if isfield(Config, 'omit')
+    if isfield(Config, 'label')
+        for o = 1:length(Config.omit)
+            Config.omit{o} = convertStringsToChars(Config.omit{o});
+        end
+        newLabel = {};
+        for l = 1:length(Config.label)
+            if ismember(Config.label{l}, Config.omit)
+                data = data([1:l-1,l+1:end], [1:l-1,l+1:end]);
+            else
+                newLabel{length(newLabel)+1} = Config.label{l};
+            end
+        end
+        Config.label = newLabel;
+    else
+        warning("'Config.label' is required for 'Config.omit' to work. Selected tissues won't be omitted.")
+    end
+end
 
 visualize = true;
 if isfield(Config, 'visualize')
@@ -40,8 +67,8 @@ else
     heatmap(data)
 end
 caxis([0 1])
-xlabel(method2)
-ylabel(method1)
+xlabel(method1)
+ylabel(method2)
 if isfield(Config, 'title')
     title(Config.title)
     set(fig, 'Name', Config.title)

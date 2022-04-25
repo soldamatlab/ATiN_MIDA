@@ -32,7 +32,8 @@ Path.source.nrrd = [Path.source.root '\external\nrrd_read_write_rensonnet'];
 
 % Output:
 Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data';
-Path.output = [Path.data '\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768'];
+Path.output = [Path.data '\analysis\SCI'];
+%Path.output = [Path.data '\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768'];
 Path.segmentation = [Path.output '\segmentation'];
 Path.segmentationFT = [Path.segmentation '\fieldtrip'];
 Path.segmentationMRTIM = [Path.segmentation '\mrtim'];
@@ -82,6 +83,9 @@ cfgGT.seg.segmentation = Info.(method).mriSegmented;
 cfgGT.seg.prepro = Info.(method).mriPrepro;
 cfgGT.seg.method = Info.(method).method;
 cfgGT.seg.nLayers = Info.(method).nLayers;
+if cfgGT.seg.method == "mrtim"
+    cfgGT.omit = {'sinus'};
+end
 % TODO better
 if cfgGT.seg.nLayers == 3
     cfgGT.seg.colormap = lines(4);

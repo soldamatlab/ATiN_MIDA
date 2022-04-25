@@ -1,23 +1,25 @@
 function [Result, MaskResult] = compare_segmentations(Config)
 % COMPARE_SEGMENTATIONS aligns 'seg2' to 'seg1' and compares them.
 %
-%   Required:
+% Required:
 %   Config.path.fieldtrip
 %
-%   Config.seg1 - struct, see below
-%   Config.seg2 - struct, see below
+%   Config.seg1             = struct, see below
+%   Config.seg2             = struct, see below
 %   Config.segX.prepro
 %   Config.segX.segmentation
 %   Config.segX.method
 %   Config.segX.nLayers
 %
-%   Config.output - string, new folder named after both segmentation
-%                   methods + number of layers will be made in specified
-%                   destination
+%   Config.output           = string, new folder named after both segmentation
+%                             methods + number of layers will be made in specified
+%                             destination
 %
-%   Optional:
+% Optional:
 %   Config.visualize
 %   Config.save
+%   Config.omit             = cell array, include all tissue labels to omit
+%                             while plotting results (i.e. {'gray', 'white'})
 %   Config.segX.colormap
 %   Config.colormap
 
@@ -47,7 +49,6 @@ check_required_field(Config.seg2, 'nLayers');
 check_required_field(Config, 'output');
 seg1name = [Config.seg1.method sprintf('%d',Config.seg1.nLayers)];
 seg2name = [Config.seg2.method sprintf('%d',Config.seg2.nLayers)];
-
 outPath = [char(Config.output) '\' char(seg1name) '_' char(seg2name)];
 [outPath, imgPath] = create_output_folder(outPath);
 
@@ -111,6 +112,9 @@ cfg.nLayers1 = Config.seg1.nLayers;
 cfg.method2 = Config.seg2.method;
 cfg.nLayers2 = Config.seg2.nLayers;
 cfg.label = segmentation1.tissuelabel;
+if isfield(Config, 'omit')
+    cfg.omit = Config.omit;
+end
 
 cfg.title = 'Spacial Overlap index';
 cfg.save = [imgPath '\spatial_overlap'];

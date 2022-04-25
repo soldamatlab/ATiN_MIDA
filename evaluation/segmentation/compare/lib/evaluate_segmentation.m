@@ -86,4 +86,3 @@ for seg = 1:length(label)
     end
 end
 Result.jaccard = jaccard;
-
