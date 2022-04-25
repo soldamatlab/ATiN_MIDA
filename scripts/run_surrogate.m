@@ -1,6 +1,7 @@
 %% Init
 clear variables
 close all
+addpath_source
 
 %% Config
 cfg = struct;

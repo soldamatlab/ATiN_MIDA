@@ -2,6 +2,7 @@
 %% Innit
 clear variables
 close all
+addpath_source
 cfg = struct;
 
 %% Define local paths

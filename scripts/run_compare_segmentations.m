@@ -1,14 +1,10 @@
 %% Init
 clear variables
 close all
+addpath_source
 Info = struct;
 
 %% Define paths
-%wd = fileparts(mfilename('fullpath')); % for automatic run
-%wd = './';
-wd = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project\evaluation\segmentation\compare'; 
-addpath(genpath(wd));
-
 Path = struct;
 % Data:
 Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data';

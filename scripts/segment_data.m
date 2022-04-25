@@ -1,26 +1,13 @@
-%% Define paths
-Source = struct;
-Source.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project';
-Source.common = [Source.root '\common'];
-Source.pipeline = [Source.root '\forward_problem_pipeline'];
-Source.segmentation.root = [Source.root '\forward_problem_pipeline\segmentation'];
-Source.segmentation.fieldtrip = [Source.segmentation.root '\fieldtrip'];
-Source.segmentation.mrtim = [Source.segmentation.root '\mrtim'];
-
+%% Paths
 Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 Path.spm = [matlabroot '\toolbox\spm12'];
 Path.mrtim = [matlabroot '\toolbox\spm12\toolbox\mrtim'];
 
-Path.data.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data';
-Path.data.nudz.root = [Path.data.root '\MR'];
-
+Path.data.nudz.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data\MR';
 Path.output = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis';
 
 %% Import source code & Init toolboxes
-addpath(Source.common)
-addpath(Source.pipeline)
-
-addpath(Path.mrtim)
+addpath_source
 addpath(Path.fieldtrip)
 ft_defaults
 
