@@ -59,14 +59,6 @@ NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 VERBOSE = true;
 WAITBAR = true;
 
-%% Define source code paths
-wd = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project\evaluation\source_localization\surrogate'; 
-constPath = [wd '\..\..\..\common\const'];
-addpath(genpath(wd));
-addpath(constPath);
-const_path; % initiates structure 'Path'
-addpath(Path.source.common);
-
 %% Config - Method
 if isfield(Config, 'method')
     Config.method = string(Config.method);
@@ -156,6 +148,7 @@ else
 end
 
 %% Init FieldTrip
+const_path % initializes 'Path' struct
 addpath(Path.toolbox.fieldtrip)
 ft_defaults
 
@@ -195,8 +188,9 @@ evaluation.dipoleIndexes = make_column(dipoleIndexes);
 for s = 1:nSNR
     evaluation.truthMaps.(SNRnames{s}).maps = cell(nDipoleIndexes, 1);
     for m = 1:nMethod
-        evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nDipoleIndexes, nAXES);
         evaluation.(method{m}).(SNRnames{s}).maps = cell(nDipoleIndexes, nAXES);
+        evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nDipoleIndexes, nAXES);
+        evaluation.(method{m}).(SNRnames{s}).ed2 = NaN(nDipoleIndexes, nAXES);
     end
 end
 
@@ -301,25 +295,31 @@ for s = 1:nSNR
         
         %% Metrics
         %% ED1
+        valueParameter.default = 'pow';
+        valueParameter.(LCMV) = 'nai';
+
         cfg = struct;
         cfg.dipoleIdx = dipoleIndexes(d);
         cfg.sourcemodel = sourcemodel;
         cfg.returnOne = true;
-        valueParameter.default = 'pow';
-        valueParameter.(LCMV) = 'nai';
         for m = 1:nMethod
-            if isfield(valueParameter, method{m})
-                param = valueParameter.(method{m});
-            else
-                param = valueParameter.default;
-            end
+            param = choose_value_parameter(valueParameter, method{m});
             for a = 1:nAXES
                 cfg.dipoleValues = source.(method{m}).(AXES{a}).avg.(param);
                 evaluation.(method{m}).(SNRnames{s}).ed1(d,a) = ed1(cfg);
             end
         end
         %% ED2
-        % TODO ?
+        cfg = struct;
+        cfg.sourcemodel = sourcemodel;
+        cfg.dipoleIdx = dipoleIndexes(d);
+        for m = 1:nMethod
+            param = choose_value_parameter(valueParameter, method{m});
+            for a = 1:nAXES
+                cfg.dipoleValues = source.(method{m}).(AXES{a}).avg.(param);
+                evaluation.(method{m}).(SNRnames{s}).ed2(d,a) = ed2(cfg);
+            end
+        end
         
         %% Update waitbar
         if showBar
@@ -337,13 +337,16 @@ end
 %% Evaluate & Save
 for m = 1:nMethod
     for s = 1:nSNR
+        % TODO test no 'omitnan'
         evaluation.(method{m}).(SNRnames{s}).ed1mean = mean(evaluation.(method{m}).(SNRnames{s}).ed1, 1, 'omitnan');
         evaluation.(method{m}).(SNRnames{s}).ed1std = std(evaluation.(method{m}).(SNRnames{s}).ed1, 0, 1, 'omitnan');
+        evaluation.(method{m}).(SNRnames{s}).ed2mean = mean(evaluation.(method{m}).(SNRnames{s}).ed2, 'all', 'omitnan');
+        evaluation.(method{m}).(SNRnames{s}).ed2std = std(evaluation.(method{m}).(SNRnames{s}).ed2, 0, 'all', 'omitnan');
     end
 end
 save([output '\evaluation'], 'evaluation');
 
-%% Plot Result Table
+%% Plot Results in Table
 cfg = struct;
 cfg.method = method;
 cfg.SNR = SNR;

@@ -29,21 +29,26 @@ end
 
 %% Create Table
 nCombinations = nMethod * nSNR;
-xMean = NaN(nCombinations, 1);
-yMean = NaN(nCombinations, 1);
-zMean = NaN(nCombinations, 1);
-xSTD = NaN(nCombinations, 1);
-ySTD = NaN(nCombinations, 1);
-zSTD = NaN(nCombinations, 1);
+ED1_x_mean = NaN(nCombinations, 1);
+ED1_y_mean = NaN(nCombinations, 1);
+ED1_z_mean = NaN(nCombinations, 1);
+ED1_x_STD = NaN(nCombinations, 1);
+ED1_y_STD = NaN(nCombinations, 1);
+ED1_z_STD = NaN(nCombinations, 1);
+ED2_mean = NaN(nCombinations, 1);
+ED2_STD = NaN(nCombinations, 1);
 for m = 1:nMethod
     for s = 1:nSNR
         idx = (m-1)*nSNR + s;
-        xMean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(1);
-        yMean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(2);
-        zMean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(3);
-        xSTD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(1);
-        ySTD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(2);
-        zSTD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(3);
+        ED1_x_mean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(1);
+        ED1_y_mean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(2);
+        ED1_z_mean(idx) = evaluation.(method{m}).(SNRnames{s}).ed1mean(3);
+        ED1_x_STD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(1);
+        ED1_y_STD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(2);
+        ED1_z_STD(idx) = evaluation.(method{m}).(SNRnames{s}).ed1std(3);
+        
+        ED2_mean(idx) = evaluation.(method{m}).(SNRnames{s}).ed2mean;
+        ED2_STD(idx) = evaluation.(method{m}).(SNRnames{s}).ed2std;
     end
 end
 method = string(method);
@@ -51,7 +56,7 @@ method = repelem(method, nSNR);
 method = make_column(method);
 SNR = make_column(SNR);
 SNR = repmat(SNR, nMethod, 1);
-evaluationTable = table(method, SNR, xMean, xSTD, yMean, ySTD, zMean, zSTD);
+evaluationTable = table(method, SNR, ED1_x_mean, ED1_x_STD, ED1_y_mean, ED1_y_STD, ED1_z_mean, ED1_z_STD, ED2_mean, ED2_STD);
 
 %% Display & Save
 if verbose

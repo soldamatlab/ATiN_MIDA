@@ -1,5 +1,5 @@
 function [ed1, shift] = ed1(Config)
-%% ED1
+% ED1
 % Will return multiple values if there are multiple global maximums.
 % TODO doc params
 %
