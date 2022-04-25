@@ -1,6 +1,63 @@
-%% Init
-clear variables
-close all
+function [evaluation, evaluationTable] = surrogate(Config)
+% SURROGATE evaluates source-loaclization capability of a head model with
+% generated white gaussian signal.
+%
+% Adapted code from ATiN RATESI Frontiers2021 project by Stanislav Jiricek.
+% Matous Soldat, 2022
+%
+% Use as:
+%   [evaluation, evaluationTable] = surrogate(Config)
+%
+% Required:
+%   Config.modelPath        = path to folder with files:
+%                             sourcemodel.mat with var 'sourcemodel' / leadfield.mat with var 'leadfield'          
+%                             headmodel.mat with var 'headmodel'
+%                             elec.mat with var 'elec'
+%    or
+%   Config.sourcemodel
+%   Config.headmodel
+%   Config.elec
+%   Config.leadfield (optional)
+%
+% Optional:
+%   Config.method           = cell array with one or more from {"eloreta", "lcmv"}
+%                             default is {"eloreta"}
+%
+%   Config.dipoleDownsample = 1 (default) for no downsample,
+%                             'x' for every 'x'th dipole
+%
+%   Config.verbose          = true (default) to display resultTable
+%   Config.waitbar          = true (default) to show waitbar with ET
+%
+% Signal: TODO doc
+%   Config.signal.snr       = Signal to Noise Ratio
+%   Config.signal.T         = [s] signal duration
+%   Config.signal.Tseg      = TODO not implemented, [s] duration of a signal segment
+%   Config.signal.fs        = [Hz] Sampling Frequency
+%   Config.signal.noisePower= [dBW] power of noise samples, specified as a scalar
+%
+% eLORETA defaults:
+%   Config.eloreta.lambdas  = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
+%                             
+
+%% Constants
+ELORETA = 'eloreta';
+LCMV = 'lcmv';
+SUPPORTED_METHODS = {ELORETA, LCMV};
+METHOD = {ELORETA};
+
+AXES = {'x', 'y', 'z'};
+DIPOLE_DOWNSAMPLE = 1; % 1 for no downsample, 'x' for every 'x'th dipole
+ELORETA_LAMBDAS = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
+
+SNR = 10; % Signal to Noise Ratio
+T = 1; % [s] signal duration
+%T_SEG = 1; % [s] duration of a signal segment % TODO not implemented
+FS = 100; % [Hz] Sampling Frequency
+NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
+
+VERBOSE = true;
+WAITBAR = true;
 
 %% Define source code paths
 wd = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project\evaluation\source_localization\surrogate'; 
@@ -10,108 +67,185 @@ addpath(constPath);
 const_path; % initiates structure 'Path'
 addpath(Path.source.common);
 
+%% Config - Method
+if isfield(Config, 'method')
+    Config.method = string(Config.method);
+    if ~iscell(Config.method)
+        Config.method = num2cell(Config.method);
+    end
+else
+    Config.method = METHOD;
+end
+
+if ~isfield(Config, 'dipoleDownsample')
+    Config.dipoleDownsample = DIPOLE_DOWNSAMPLE;
+end
+if ~isfield(Config, 'eloreta') || ~isfield(Config.eloreta, 'lambdas')
+    Config.eloreta.lambdas = ELORETA_LAMBDAS;
+end
+
+%% Config - Signal
+if ~isfield(Config, 'signal')
+    Config.signal.snr = SNR;
+    Config.signal.T = T;
+    %Config.signal.Tseg = T_SEG;
+    Config.signal.fs = FS;
+    Config.signal.noisePower = NOISE_POWER;
+else
+    if isfield(Config.signal, 'snr')
+        if iscell(Config.snr)
+            Config.signal.snr = cell2mat(Config.signal.snr);
+        end
+    else
+        Config.signal.snr = SNR;
+    end
+    if ~isfield(Config.signal, 'T')
+        Config.signal.T = T;
+    end
+    %if ~isfield(Config.signal, 'Tseg')
+    %    Config.signal.Tseg = T_SEG;
+    %end
+    if ~isfield(Config.signal, 'fs')
+        Config.signal.fs = FS;
+    end
+    if ~isfield(Config.signal, 'noisePower')
+        Config.signal.noisePower = NOISE_POWER;
+    end
+end
+
+%% Config - miscellaneous
+if ~isfield(Config, 'verbose')
+    Config.verbose = VERBOSE;
+end
+if ~isfield(Config, 'waitbar')
+    Config.waitbar = WAITBAR;
+end
+
+%% Load Model
+if isfield(Config, 'modelPath')
+    if isfile([Config.modelPath '\leadfield.mat'])
+        load([Config.modelPath '\leadfield'], 'leadfield');
+        check_required_field(leadfield, 'leadfield');
+        sourcemodel = leadfield; clear leadfield
+    elseif isfile([Config.modelPath '\sourcemodel.mat'])
+        load([Config.modelPath '\sourcemodel'], 'sourcemodel');
+        check_required_field(sourcemodel, 'leadfield');
+    else
+        error("Neither 'sourcemodel.mat' nor 'leadfield.mat' file found in '%s'.", Config.modelPath);
+    end
+    load([Config.modelPath '\headmodel'], 'headmodel');
+    load([Config.modelPath '\elec'], 'elec');
+
+    if ~isfield(Config, 'output')
+        Config.output = [Config.modelPath '\evaluation\surrogate'];
+    end
+else
+    check_required_field(Config, 'sourcemodel');
+    sourcemodel = Config.sourcemodel;
+    check_required_field(sourcemodel, 'leadfield');
+    check_required_field(Config, 'headmodel');
+    headmodel = Config.headmodel;
+    check_required_field(Config, 'elec');
+    elec = Config.elec;
+    if isfield(Config.leadfield)
+        sourcemodel.leadfield = Config.leafield;
+    end
+    check_required_field(sourcemodel, 'leadfield');
+    
+    check_required_field(Config, 'output');
+end
+
 %% Init FieldTrip
 addpath(Path.toolbox.fieldtrip)
 ft_defaults
 
-%% Constants & Settings
-ELORETA = "eloreta";
-LCMV = "lcmv";
-SUPPORTED_METHODS = [ELORETA, LCMV];
-method = [ELORETA, LCMV]; % choose one or more from 'SUPPORTED_METHODS'
-
-dipoleDownsample = 64; % 1 for no downsample, 'x' for every 'x'th dipole
-eloretaLambdas = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
-
-modelPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\model_fieldtrip_test\03'; % TODO
-outputPath = [modelPath '\evaluation\surrogate'];
-
-%% Define Signal TODO
-SNR     = [5, 25]; % [dB] Signal-to-Noise Ratio, choose multiple by [5 10 15 25]
-T       = 1; % délka signálu v sekundách
-T_seg   = 1; % délka segmentu
-fs      = 100; % vzorkovací frekvence v Hz
-t       = 0:1/fs:T-1/fs; % časová vektor signálu
-
-noisePower = 10; % [dBW] Power of noise samples, specified as a scalar.
-
-%% Load Data
-load([modelPath '\leadfield'], 'leadfield');
-%sourcemodel = remove_leadfield(leadfield);
-%leadfield = leadfield.leadfield;
-sourcemodel = leadfield; clear leadfield
-load([modelPath '\headmodel'], 'headmodel');
-load([modelPath '\elec'], 'elec');
-
 %% Init
+method = Config.method;
+dipoleDownsample = Config.dipoleDownsample;
+eloretaLambdas = Config.eloreta.lambdas;
+SNR = Config.signal.snr;
+T = Config.signal.T;
+%T_seg = Config.signal.Tseg;
+fs = Config.signal.fs;
+noisePower = Config.signal.noisePower;
+verbose = Config.verbose;
+showBar = Config.waitbar;
+output = Config.output;
+
+dipoleIndexes = 1:dipoleDownsample:length(sourcemodel.inside);
+dipoleIndexes = dipoleIndexes(sourcemodel.inside(dipoleIndexes));
+nDipoleIndexes = length(dipoleIndexes);
+
 method = check_methods(method, SUPPORTED_METHODS);
 nMethod = length(method);
+
+SNRnames = generate_snr_names(SNR);
 nSNR = length(SNR);
+
+nAXES = length(AXES);
+
+t = 0 : 1/fs : T - 1/fs;
+
 sourceTemplate = get_source_template(sourcemodel);
-nDipoles = length(sourcemodel.pos);
-[outputPath, imgPath] = create_output_folder(outputPath);
+[output, ~] = create_output_folder(output);
 
 % TODO make evaluation init into a function
 evaluation = struct;
-for m = 1:nMethod
-    evaluation.(method(m)).maps = {};
-    for s = 1:nSNR
-        evaluation.(method(m)).maps{s} = [];
+evaluation.dipoleIndexes = make_column(dipoleIndexes);
+for s = 1:nSNR
+    evaluation.truthMaps.(SNRnames{s}).maps = cell(nDipoleIndexes, 1);
+    for m = 1:nMethod
+        evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nDipoleIndexes, nAXES);
+        evaluation.(method{m}).(SNRnames{s}).maps = cell(nDipoleIndexes, nAXES);
     end
-    evaluation.(method(m)).ed1 = zeros(nSNR, 3, nDipoles);
 end
 
 %% Run
-bar = 0;
-bar_max = nSNR * sum(sourcemodel.inside(1:dipoleDownsample:nDipoles));
-fig = waitbar(0, {['Computed: 0 / ' num2str(bar_max)], 'Estimated Time Remaining: TBD'},...
-    'Name', 'Surrogate Source Localization');
-
+if showBar
+    bar = 0;
+    barMax = nSNR * nDipoleIndexes;
+    figBar = waitbar(bar/barMax, {['Computed: 0 / ' num2str(barMax)], 'Estimated Time Remaining: TBD'},...
+        'Name', 'Surrogate Source Localization');
+end
 for s = 1:nSNR
-    for d = 1:dipoleDownsample:nDipoles
-        if sourcemodel.inside(d) == 0
-            continue
+    for d = 1:nDipoleIndexes
+        if showBar
+            iterationStart = tic;
         end
-        iterationStart = tic;
         
         %% Simualte signal
         signal = wgn(1, T*fs, noisePower);
         sourcemap = sourceTemplate;
-        sourcemap(d) = sqrt(sum(signal.^2));
+        sourcemap(dipoleIndexes(d)) = sqrt(sum(signal.^2));
+        evaluation.truthMaps.(SNRnames{s}).maps{d} = sourcemap;
         
-        dipoleLeadfield = sourcemodel.leadfield{1,d};
-        potencialX = dipoleLeadfield(:,1)*signal;
-        potencialY = dipoleLeadfield(:,2)*signal;
-        potencialZ = dipoleLeadfield(:,3)*signal;
-        PotencialX = awgn(potencialX, SNR(s), 'measured');
-        PotencialY = awgn(potencialY, SNR(s), 'measured');
-        PotencialZ = awgn(potencialZ, SNR(s), 'measured');
+        dipoleLeadfield = sourcemodel.leadfield{1, dipoleIndexes(d)};
+        potencial = struct;
+        for a = 1:nAXES
+            potencial.(AXES{a}) = dipoleLeadfield(:,a)*signal;
+            potencial.(AXES{a}) = awgn(potencial.(AXES{a}), SNR(s), 'measured');
+        end
         
         %% FieldTrip structure
-        data          = [];
-        data.label    = elec.label;
-        data.fsample  = fs;
-        data.trial{1} = potencialX;
-        data.time{1}  = t;
-        data.trial{2} = potencialY;
-        data.time{2}  = t;
-        data.trial{3} = potencialZ;
-        data.time{3}  = t;
-        
+        dataStruct          = [];
+        dataStruct.label    = elec.label;
+        dataStruct.fsample  = fs;
+        for a = 1:nAXES
+            dataStruct.trial{a} = potencial.(AXES{a});
+            dataStruct.time{a}  = t;
+        end
         % TODO ? separate data to shorter sections with 'ft_redefinetrial'
         
         %% Preprocess
+        data = struct;
         cfg = struct;
         cfg.demean = 'yes';
-        
-        cfg.trials = logical([1 0 0]);
-        dataX = ft_preprocessing(cfg, data); % TODO read doc
-        
-        cfg.trials = logical([0 1 0]);
-        dataY = ft_preprocessing(cfg, data);
-        
-        cfg.trials = logical([0 0 1]);
-        dataZ = ft_preprocessing(cfg, data);
+        for a = 1:nAXES
+            trials = [0 0 0];
+            trials(a) = 1;
+            cfg.trials = logical(trials);
+            data.(AXES{a}) = ft_preprocessing(cfg, dataStruct); % TODO read doc
+        end
         
         %% Covariance Matrix
         cfg                  = [];
@@ -119,12 +253,12 @@ for s = 1:nSNR
         cfg.covariancewindow = 'all';
         cfg.keeptrials       = 'no';
         cfg.vartrllength     = 2; % TODO 'vartrllength' not in doc
-        timelockX = ft_timelockanalysis(cfg, dataX); % TODO read doc
-        timelockY = ft_timelockanalysis(cfg, dataY);
-        timelockZ = ft_timelockanalysis(cfg, dataZ);
-        
-        % TODO study:
-        lcmvLambdas = [0.003*max(eig(timelockX.cov)) 0.003*max(eig(timelockY.cov)) 0.003*max(eig(timelockZ.cov))];
+        timelock = struct;
+        lcmvLambdas = NaN(1, nAXES);
+        for a = 1:nAXES
+            timelock.(AXES{a}) = ft_timelockanalysis(cfg, data.(AXES{a})); % TODO read doc
+            lcmvLambdas(a) = 0.003*max(eig(timelock.(AXES{a}).cov)); % TODO study
+        end
         
         %% Source Analysis
         source = struct;
@@ -140,19 +274,12 @@ for s = 1:nSNR
             cfg.lcmv.keepcov      = 'yes';
             cfg.lcmv.keepmom      = 'no';
 
-            cfg.lcmv.lambda = lcmvLambdas(1);
-            source.(LCMV).x = ft_sourceanalysis(cfg, timelockX); % TODO read doc
-            source.(LCMV).x.avg.nai = source.(LCMV).x.avg.pow ./ source.(LCMV).x.avg.noise;
-
-            cfg.lcmv.lambda = lcmvLambdas(2);
-            source.(LCMV).y = ft_sourceanalysis(cfg, timelockY);
-            source.(LCMV).y.avg.nai = source.(LCMV).y.avg.pow ./ source.(LCMV).y.avg.noise;
-
-            cfg.lcmv.lambda = lcmvLambdas(3);
-            source.(LCMV).z = ft_sourceanalysis(cfg, timelockZ);
-            source.(LCMV).z.avg.nai = source.(LCMV).z.avg.pow ./ source.(LCMV).z.avg.noise;
-
-            evaluation.(LCMV).maps{s} = [evaluation.(LCMV).maps{s} source.(LCMV).x.avg.nai source.(LCMV).y.avg.nai source.(LCMV).z.avg.nai];
+            for a = 1:nAXES
+                cfg.lcmv.lambda = lcmvLambdas(a);
+                source.(LCMV).(AXES{a}) = ft_sourceanalysis(cfg, timelock.(AXES{a})); % TODO read doc
+                source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
+                evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+            end
         end
         %% eLORETA
         if ismember(ELORETA, method)
@@ -165,78 +292,63 @@ for s = 1:nSNR
             cfg.eloreta.keepfilter = 'no';
             cfg.eloreta.keepmom    = 'no';
 
-            source.(ELORETA).x = ft_sourceanalysis(cfg, timelockX);
-            source.(ELORETA).x.avg.pow = source.(ELORETA).x.avg.pow'; % TODO why transpose
-            source.(ELORETA).y = ft_sourceanalysis(cfg, timelockY);
-            source.(ELORETA).y.avg.pow = source.(ELORETA).y.avg.pow';
-            source.(ELORETA).z = ft_sourceanalysis(cfg, timelockZ);
-            source.(ELORETA).z.avg.pow = source.(ELORETA).z.avg.pow';
-
-            evaluation.(ELORETA).maps{s} = [evaluation.(ELORETA).maps{s} source.(ELORETA).x.avg.pow source.(ELORETA).y.avg.pow source.(ELORETA).z.avg.pow];
+            for a = 1:nAXES
+                source.(ELORETA).(AXES{a}) = ft_sourceanalysis(cfg, timelock.(AXES{a}));
+                source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
+                evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+            end
         end
         
         %% Metrics
         %% ED1
         cfg = struct;
-        cfg.dipoleIdx = d;
+        cfg.dipoleIdx = dipoleIndexes(d);
         cfg.sourcemodel = sourcemodel;
         cfg.returnOne = true;
         valueParameter.default = 'pow';
         valueParameter.(LCMV) = 'nai';
         for m = 1:nMethod
-            if isfield(valueParameter, method(m))
-                param = valueParameter.(method(m));
+            if isfield(valueParameter, method{m})
+                param = valueParameter.(method{m});
             else
                 param = valueParameter.default;
             end
-            
-            cfg.dipoleValues = source.(method(m)).x.avg.(param);
-            evaluation.(method(m)).ED1(s,1,d) = ed1(cfg);
-            cfg.dipoleValues = source.(method(m)).y.avg.(param);
-            evaluation.(method(m)).ED1(s,2,d) = ed1(cfg);
-            cfg.dipoleValues = source.(method(m)).z.avg.(param);
-            evaluation.(method(m)).ED1(s,3,d) = ed1(cfg);
+            for a = 1:nAXES
+                cfg.dipoleValues = source.(method{m}).(AXES{a}).avg.(param);
+                evaluation.(method{m}).(SNRnames{s}).ed1(d,a) = ed1(cfg);
+            end
         end
         %% ED2
         % TODO ?
         
         %% Update waitbar
-        bar = bar + 1;
-        time = toc(iterationStart);
-        estimated_time = (time * (bar_max - bar)) / 60; % [min]
-        waitbar(bar / bar_max, fig, {['Computed: ' num2str(bar) ' / ' num2str(bar_max)], ['Estimated Time Remaining: ' num2str(estimated_time) ' min']});
+        if showBar
+            time = toc(iterationStart);
+            bar = bar + 1;
+            estimated_time = (time * (barMax - bar)) / 60; % [min]
+            waitbar(bar/barMax, figBar, {['Computed: ' num2str(bar) ' / ' num2str(barMax)], ['Estimated Time Remaining: ' num2str(estimated_time) ' min']});
+        end
     end
 end
-waitbar(1, fig, 'Done');
+if showBar
+    close(figBar)
+end
 
 %% Evaluate & Save
 for m = 1:nMethod
-    evaluation.(method(m)).ED1mean = mean(evaluation.(method(m)).ED1, 3);
-    evaluation.(method(m)).ED1std = std(evaluation.(method(m)).ED1, 0, 3);
+    for s = 1:nSNR
+        evaluation.(method{m}).(SNRnames{s}).ed1mean = mean(evaluation.(method{m}).(SNRnames{s}).ed1, 1, 'omitnan');
+        evaluation.(method{m}).(SNRnames{s}).ed1std = std(evaluation.(method{m}).(SNRnames{s}).ed1, 0, 1, 'omitnan');
+    end
 end
-save([outputPath '\evaluation'], 'evaluation');
-%%
-% TODO table from 'evaluation' struct
-method = make_column(method);
-method = repmat(method, nSNR, 1);
-SNR = repelem(SNR, nMethod);
-SNR = make_column(SNR);
-nCombinations = nMethod * nSNR;
-xMean = zeros(nCombinations, 1);
-yMean = zeros(nCombinations, 1);
-zMean = zeros(nCombinations, 1);
-xSTD = zeros(nCombinations, 1);
-ySTD = zeros(nCombinations, 1);
-zSTD = zeros(nCombinations, 1);
-for m = 1:nMethod
-    startIdx = (m-1)*nSNR+1;
-    endIdx = m*nSNR;
-    xMean(startIdx:endIdx) = evaluation.(method(m)).ED1mean(:,1);
-    yMean(startIdx:endIdx) = evaluation.(method(m)).ED1mean(:,2);
-    zMean(startIdx:endIdx) = evaluation.(method(m)).ED1mean(:,3);
-    xSTD(startIdx:endIdx) = evaluation.(method(m)).ED1std(:,1);
-    ySTD(startIdx:endIdx) = evaluation.(method(m)).ED1std(:,2);
-    zSTD(startIdx:endIdx) = evaluation.(method(m)).ED1std(:,3);
+save([output '\evaluation'], 'evaluation');
+
+%% Plot Result Table
+cfg = struct;
+cfg.method = method;
+cfg.SNR = SNR;
+cfg.SNRnames = SNRnames;
+cfg.verbose = verbose;
+cfg.save = [output '\evaluation_table'];
+evaluationTable = plot_evaluation_table(cfg, evaluation);
 end
-evaluationTable = table(method, SNR, xMean, xSTD, yMean, ySTD, zMean, zSTD)
-save([outputPath '\evaluation_table'], 'evaluationTable');
