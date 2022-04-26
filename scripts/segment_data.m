@@ -3,8 +3,8 @@ Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 Path.spm = [matlabroot '\toolbox\spm12'];
 Path.mrtim = [matlabroot '\toolbox\spm12\toolbox\mrtim'];
 
-Path.data.nudz.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data\MR';
-Path.output = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis';
+Path.data.nudz.root = 'S:\BP_MIDA\data\MR';
+Path.output = 'S:\BP_MIDA\analysis';
 
 %% Import source code & Init toolboxes
 addpath_source

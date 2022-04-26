@@ -10,7 +10,7 @@ cfg.location = 'center';
 cfg.funcolormap = spring(2);
 
 %% Config
-if isfield(Config, 'visalize')
+if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
 if isfield(Config, 'parameter')

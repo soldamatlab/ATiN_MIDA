@@ -1,5 +1,7 @@
 function [] = segmentation_mrtim(Config)
 %SEGMENTATION_MRTIM TODO description
+%addpath_source has to be called first.
+%
 %   Required:
 %   TODO
 %
@@ -9,11 +11,6 @@ function [] = segmentation_mrtim(Config)
 %
 %   ! Calling 'restoredefaultpath' before this function will result in
 %   "Unrecognized function or variable 'cfg_util'." error.
-
-%% Import source code
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath(wd));
-addpath(genpath([wd '\..\..\..\common']));
 
 %% Config
 check_required_field(Config, 'path');
@@ -46,6 +43,7 @@ save([Config.output '\config'], 'Config');
 
 %% Innit SPM
 addpath(Config.path.spm)
+addpath(Config.path.mrtim)
 spm('defaults', 'FMRI');
 
 %% Run SPM

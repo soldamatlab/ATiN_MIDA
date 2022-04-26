@@ -31,7 +31,7 @@ if ~exist(masksImgPath, 'dir')
 end
 
 %% Set 'visualize'
-visualize = false; % Default
+visualize = true; % Default
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
