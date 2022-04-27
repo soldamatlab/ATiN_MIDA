@@ -23,4 +23,4 @@ cfg.visualize = true;
 %Config = cfg; clear cfg; % for manual run of parts of the pipeline
 
 %% Run
-segmentation_fieldtrip(cfg);
+mriSegmented = segmentation_fieldtrip(cfg);
