@@ -10,6 +10,7 @@ cfg.path.spm = [matlabroot '\toolbox\spm12'];
 cfg.path.mrtim = [matlabroot '\toolbox\spm12\toolbox\MRTIM'];
 cfg.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 
+%% Simple call
 outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\segmentation_mrtim_test';
 run = '01';
 cfg.output = [outputPath '\' run];
@@ -23,10 +24,17 @@ cfg.mri = [dataPath mri];
 %cfg.mrtim.run.prepro.res = 1;
 
 %% MR-TIM Setting via Matlabbatch
-%cfg.batch = './matlabbatch\example_batch.mat';
+% path to matlabbatch in a '.mat' file
+%cfg.batch = './matlabbatch\example_batch.mat'; 
+
+% or matlabbatch as var
+%cfg.batch = matlabbatch;
 
 %% Miscellaneous
-%Config = cfg; clear cfg; % for manual run of parts of the pipeline
+cfg.visualize = true;
+%cfg.allowExistingFolder = true;
+
+%cfg = cfg; clear cfg; % for manual run of parts of the pipeline
 
 %% Run
-segmentation_mrtim(cfg);
+mriSegmented = segmentation_mrtim(cfg);

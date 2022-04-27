@@ -1,4 +1,4 @@
-function [] = segmentation_mrtim(Config)
+function [mriSegmented] = segmentation_mrtim(Config)
 %SEGMENTATION_MRTIM TODO description
 %addpath_source has to be called first.
 %
@@ -7,6 +7,11 @@ function [] = segmentation_mrtim(Config)
 %
 %   Optional:
 %   Config.nLayers
+%   Config.allowExistingFolder = logcial, default false, setting to true
+%                                enables saving output in an already
+%                                existing folder
+%   Config.fillBatch = logical, default true, if set to false Config.batch
+%                      will be used as is with no changes
 %   TODO
 %
 %   ! Calling 'restoredefaultpath' before this function will result in
@@ -20,23 +25,33 @@ check_required_field(Config.path, 'fieldtrip');
 addpath(Config.path.fieldtrip)
 ft_defaults
 
-check_required_field(Config, 'output');
 Config = set_nlayers(Config);
 
 if isfield(Config, 'batch')
-    load(Config.batch, 'matlabbatch');
-    Config = set_mri_path(Config, matlabbatch);
+    Config = set_batch(Config);
+    Config = set_mri_path(Config, Config.batch);
 else
     Config = set_mri_path(Config);
 end
-
-Config.output = [Config.output '\mrtim' num2str(Config.nLayers)];
-[Config.output, imgPath] = create_output_folder(Config.output);
-
-visualize = false;
-if isfield(Config, 'visualize')
-    visualize = Config.visualize;
+if ~isfield(Config, 'fillBatch')
+    Config.fillBatch = true;
 end
+
+if Config.fillBatch
+    Config.output = [Config.output '\mrtim' num2str(Config.nLayers)];
+else
+    Config.output = Config.batch{1, 1}.spm.tools.spm_mrtim.run.output_folder{1, 1};
+end
+check_required_field(Config, 'output');
+if ~isfield(Config, 'allowExistingFolder')
+    Config.allowExistingFolder = false;
+end
+[Config.output, imgPath] = create_output_folder(Config.output, Config.allowExistingFolder);
+
+if ~isfield(Config, 'visualize')
+    Config.visualize = false;
+end
+visualize = Config.visualize;
 
 Config.method = 'mrtim';
 save([Config.output '\config'], 'Config');
@@ -47,7 +62,7 @@ addpath(Config.path.mrtim)
 spm('defaults', 'FMRI');
 
 %% Run SPM
-matlabbatch = setup_matlabbatch(Config);
+matlabbatch = get_batch(Config);
 spm_jobman('run', matlabbatch);
 
 %% Create segmented MRI with segmentation masks
