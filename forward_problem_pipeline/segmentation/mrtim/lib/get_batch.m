@@ -1,9 +1,12 @@
-function [matlabbatch] = setup_matlabbatch(Config)
+function [matlabbatch] = get_batch(Config)
 mriPath = [Config.mri ',1'];
 
 if isfield(Config, 'batch')
-    matlabbatch{1}.spm.tools.spm_mrtim.run.anat_image = {mriPath};
-    matlabbatch{1}.spm.tools.spm_mrtim.run.output_folder = {Config.output};
+    matlabbatch = Config.batch;
+    if Config.fillBatch
+        matlabbatch{1}.spm.tools.spm_mrtim.run.anat_image = {mriPath};
+        matlabbatch{1}.spm.tools.spm_mrtim.run.output_folder = {Config.output};
+    end
 else
     if isfield(Config, 'mrtim')
         Mrtim = fill_mrtim_defaults(Config.mrtim, Config.path.mrtim, Config.nLayers);

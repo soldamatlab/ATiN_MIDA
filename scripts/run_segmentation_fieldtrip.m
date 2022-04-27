@@ -1,7 +1,7 @@
 %% Innit
 clear variables
 close all
-addpath_source
+addpath_source;
 cfg = struct;
 
 %% Paths
@@ -23,4 +23,4 @@ cfg.visualize = true;
 %Config = cfg; clear cfg; % for manual run of parts of the pipeline
 
 %% Run
-segmentation_fieldtrip(cfg);
+mriSegmented = segmentation_fieldtrip(cfg);

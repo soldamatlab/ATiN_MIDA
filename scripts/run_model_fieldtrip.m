@@ -1,7 +1,7 @@
 %% Innit
 clear variables
 close all
-addpath_source
+addpath_source;
 cfg = struct;
 
 %% Paths

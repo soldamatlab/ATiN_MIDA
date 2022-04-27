@@ -162,7 +162,7 @@ cfg = struct;
 cfg.method = 'simbio';
 
 % (b) DUNEuro % see doc ft_headmodel_duneuro
-% ! works only on Linux machines
+% ! not tested, works only on Linux machines
 %cfg.method = 'duneuro';
 %cfg.duneuro_settings = ; % optional (see http://www.duneuro.org)
 

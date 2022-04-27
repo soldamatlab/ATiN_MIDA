@@ -1,4 +1,11 @@
 function [mri] = load_mri_anytype(mri, varName)
+% LOAD_MRI_ANYTYPE loads mri from file.
+%
+% Use as
+%   [mri] = load_mri_anytype(mri)
+% or
+%   [mri] = load_mri_anytype(mri, varName) - for '.mat' files
+
 mri = convertCharsToStrings(mri);
 if isstring(mri)
     [~,~,ext] = fileparts(mri);
