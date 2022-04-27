@@ -1,26 +1,36 @@
 function [mriPrepro, mriSegmented] = align_segmented_mri(Config)
 % ALIGN_SEGMENTED_MRI
-%   Required:
+% Required:
 %   Config.seg - struct, see below
 %   Config.seg.prepro
 %
 %   Config.target - struct, see below
 %   Config.target.prepro
 %
-%   Optional:
+% Optional:
 %   Config.seg.segmentation
+%   Config.seg.method
 %   Config.target.method
 %
 %   Config.visualize
 %   Config.save
 %   Config.colormap
 %   Config.name
+%
+%   Config.noFlip           = logical, if set to true, segmentation won't be
+%                             flipped to match SCI ground truth (useful when
+%                             it's already flipped)
+%                             Does nothing if no segmentation is SCI.
 
 %% Config
 check_required_field(Config, 'seg');
 check_required_field(Config.seg, 'prepro');
 check_required_field(Config, 'target');
 check_required_field(Config.target, 'prepro');
+
+if ~isfield(Config, 'noFlip')
+    Config.noFlip = false;
+end
 
 visualize = false;
 if isfield(Config, 'visualize')
@@ -31,9 +41,16 @@ save = isfield(Config, 'save');
 mriPrepro = Config.seg.prepro;
 target = Config.target.prepro;
 
-if isfield(Config.target, 'method')
-    if strcmp(Config.target.method, "SCI")
-        mriPrepro.transform(2,:) = -mriPrepro.transform(2,:);
+if ~Config.noFlip
+    if isfield(Config.seg, 'method')
+        if strcmp(Config.seg.method, "SCI")
+            mriPrepro.transform(2,:) = -mriPrepro.transform(2,:);
+        end
+    end
+    if isfield(Config.target, 'method')
+        if strcmp(Config.target.method, "SCI")
+            mriPrepro.transform(2,:) = -mriPrepro.transform(2,:);
+        end
     end
 end
 

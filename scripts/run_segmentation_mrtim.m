@@ -30,6 +30,8 @@ cfg.mri = [dataPath mri];
 % or matlabbatch as var
 %cfg.batch = matlabbatch;
 
+%cfg.fillBatch = false; % set false to use batch as is with no changes
+
 %% Miscellaneous
 cfg.visualize = true;
 %cfg.allowExistingFolder = true;

@@ -1,18 +1,15 @@
 %% Init
 clear variables
 close all
-addpath_source;
+sourceRoot = addpath_source;
 Info = struct;
 
 %% Define paths
 Path = struct;
 % Data:
-Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data';
+Path.data = [sourceRoot '\data'];
 Path.mri = [Path.data '\SCI\T1\patient\IM-0001-0001.dcm'];
 Path.mriNII = [Path.data '\SCI\T1\patient.nii'];
-%Path.mriPath = [Path.data '\MR\ANDROVICOVA_RENATA_8753138768\HEAD_VP03_GTEN_20181204_120528_089000\T1_SAG_MPR_3D_1MM_ISO_P2_0002'];
-%Path.mri = [Path.mriPath '\ANDROVICOVA_RENATA.MR.HEAD_VP03_GTEN.0002.0001.2018.12.12.08.59.13.218838.497728628.IMA'];
-%Path.mriNII = [Path.mriPath '\T1_SAG_MPR_3D_1MM_ISO_P2_0002_t1_sag_mpr_3D_1mm_ISO_p2_20181204120528_2.nii'];
 
 % Toolboxes:
 Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
@@ -57,13 +54,14 @@ cfgMRTIM.mri = Path.mriNII;
 Info.mrtim.method = 'mrtim';
 Info.mrtim.nLayers = 12;
 Info.mrtim.mriSegmented = [cfgMRTIM.output '\mri_segmented.mat'];
-Info.mrtim.mriPrepro = [cfgMRTIM.output '\anatomy_prepro.nii']; % TODO ? anatomy_prepro_mni.nii
+Info.mrtim.mriPrepro = [cfgMRTIM.output '\anatomy_prepro.nii'];
 %%
 segmentation_mrtim(cfgMRTIM);
 
 %% Ground Truth Comaparison
-method = 'fieldtrip';
-%method = 'mrtim';
+%method = 'fieldtrip';
+method = 'mrtim';
+%cfgGT.swap = true;
 
 cfgGT = struct;
 cfgGT.seg.segmentation = Info.(method).mriSegmented;
@@ -82,8 +80,6 @@ elseif cfgGT.seg.nLayers == 12
     cfgGT.seg.colormap = [prism(3); lines(7); parula(2)]; % TODO
 end
 
-%cfgGT.swap = true;
-
 cfgGT.path.fieldtrip = Path.fieldtrip;
 segName = [char(cfgGT.seg.method) sprintf('%d',cfgGT.seg.nLayers)];
 cfgGT.output = char(Path.result); % output path as string
@@ -97,31 +93,28 @@ cfgRel.seg1.segmentation = Info.fieldtrip.mriSegmented;
 cfgRel.seg1.prepro = Info.fieldtrip.mriPrepro;
 cfgRel.seg1.method = Info.fieldtrip.method;
 cfgRel.seg1.nLayers = Info.fieldtrip.nLayers;
-% TODO better
-if cfgRel.seg1.nLayers == 3
-    cfgRel.seg1.colormap = lines(4);
-elseif cfgRel.seg1.nLayers == 5
-    cfgRel.seg1.colormap = lines(6);
-elseif cfgRel.seg1.nLayers == 12
-    cfgRel.seg1.colormap = [prism(3); lines(7); parula(2)]; % TODO
-end
+
 %%
 cfgRel.seg2.segmentation = Info.mrtim.mriSegmented;
 cfgRel.seg2.prepro = Info.mrtim.mriPrepro;
 cfgRel.seg2.method = Info.mrtim.method;
 cfgRel.seg2.nLayers = Info.mrtim.nLayers;
-% TODO better
-if cfgRel.seg2.nLayers == 3
-    cfgRel.seg2.colormap = lines(4);
-elseif cfgRel.seg2.nLayers == 5
-    cfgRel.seg2.colormap = lines(6);
-elseif cfgRel.seg2.nLayers == 12
-    cfgRel.seg2.colormap = [prism(3); lines(7); parula(2)]; % TODO
+
+%%
+seg = {'seg1', 'seg2'};
+for i = 1:2
+    % TODO better
+    if cfgRel.(seg{i}).nLayers == 3
+        cfgRel.(seg{i}).colormap = lines(4);
+    elseif cfgRel.(seg{i}).nLayers == 5
+        cfgRel.(seg{i}).colormap = lines(6);
+    elseif cfgRel.(seg{i}).nLayers == 12
+        cfgRel.(seg{i}).colormap = [prism(3); lines(7); parula(2)]; % TODO
+    end
 end
+
 %%
 cfgRel.path.fieldtrip = Path.fieldtrip;
-seg1name = [char(cfgRel.seg1.method) sprintf('%d',cfgRel.seg1.nLayers)];
-seg2name = [char(cfgRel.seg2.method) sprintf('%d',cfgRel.seg2.nLayers)];
 cfgRel.output = Path.result; % output path as string
 cfgRel.visualize = true;
 %%

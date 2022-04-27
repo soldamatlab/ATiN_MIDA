@@ -1,8 +1,9 @@
 function [Result, MaskResult] = compare_ground_truth(Config)
 % COMPARE_GROUND_TRUTH compares MRI segmentation with an 8-layer
-% manually segmented MRI from SCI.
+% manually segmented MRI from SCI. Segmentation will be aligned to the SCI
+% ground truth.
 % 
-%   Required:
+% Required:
 %   Config.path.fieldtrip
 %
 %   Config.seg - struct, see below
@@ -13,10 +14,13 @@ function [Result, MaskResult] = compare_ground_truth(Config)
 %
 %   Config.output
 %
-%   Optional:
+% Optional:
 %   Config.visualize
 %   Config.save
 %   Config.seg.colormap (same effect as Config.colormap)
+%   Config.noFlip       = logical, if set to true, segmentation won't be
+%                         flipped to match SCI ground truth (useful when
+%                         it's already flipped)
 
 %% Import
 wd = fileparts(mfilename('fullpath'));

@@ -20,6 +20,11 @@ function [Result, MaskResult] = compare_segmentations(Config)
 %   Config.save
 %   Config.omit             = cell array, include all tissue labels to omit
 %                             while plotting results (i.e. {'gray', 'white'})
+%   Config.noFlip           = logical, if set to true, segmentation won't be
+%                             flipped to match SCI ground truth (useful when
+%                             it's already flipped)
+%                             Does nothing if no segmentation is SCI.
+%
 %   Config.segX.colormap
 %   Config.colormap
 
@@ -85,11 +90,20 @@ cfg.name = seg2name;
 cfg = struct;
 cfg.seg.segmentation = segmentation2;
 cfg.seg.prepro = prepro2;
+cfg.seg.method = Config.seg2.method;
 cfg.target.prepro = prepro1;
 cfg.target.method = Config.seg1.method;
+cfg.visualize = visualize;
 cfg.save = [imgPath '\' seg2name '_on_' seg1name '_anatomy'];
 cfg.name = [seg2name ' segmentation on ' seg1name ' anatomy'];
-cfg.visualize = visualize;
+if isfield(Config.seg2, 'colormap')
+    cfg.colormap = Config.seg2.colormap;
+elseif isfield(Config, 'colormap')
+    cfg.colormap = Config.colormap;
+end
+if isfield(Config, 'noFlip')
+    cfg.noFlip = Config.noFlip;
+end
 [prepro2, segmentation2] = align_segmented_mri(cfg);
 
 %% Interpolate tissue meshes to match
