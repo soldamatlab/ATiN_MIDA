@@ -8,8 +8,6 @@ Path.output = 'S:\BP_MIDA\analysis';
 
 %% Import source code & Init toolboxes
 addpath_source
-addpath(Path.fieldtrip)
-ft_defaults
 
 %% Find & Convert & Segment data
 subjects = dir([Path.data.nudz.root '\*_*_*']);
