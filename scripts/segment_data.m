@@ -7,7 +7,7 @@ Path.data.nudz.root = 'S:\BP_MIDA\data\MR';
 Path.output = 'S:\BP_MIDA\analysis';
 
 %% Import source code & Init toolboxes
-addpath_source
+addpath_source;
 addpath(Path.fieldtrip)
 ft_defaults
 

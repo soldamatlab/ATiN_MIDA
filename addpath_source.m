@@ -1,2 +1,4 @@
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath(wd));
+function [sourceRoot] = addpath_source()
+sourceRoot = fileparts(mfilename('fullpath'));
+addpath(genpath(sourceRoot));
+end

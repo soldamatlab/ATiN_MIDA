@@ -2,7 +2,7 @@
 %restoredefaultpath % TODO throws "Unrecognized function or variable 'cfg_util'."
 clear variables
 close all
-addpath_source
+addpath_source;
 cfg = struct;
 
 %% Paths

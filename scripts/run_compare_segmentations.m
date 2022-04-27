@@ -1,7 +1,7 @@
 %% Init
 clear variables
 close all
-addpath_source
+addpath_source;
 Info = struct;
 
 %% Define paths
@@ -18,13 +18,6 @@ Path.mriNII = [Path.data '\SCI\T1\patient.nii'];
 Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
 Path.spm = [matlabroot '\toolbox\spm12'];
 Path.mrtim = [matlabroot '\toolbox\spm12\toolbox\MRTIM'];
-
-% Submodules:
-Path.source.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project';
-Path.source.segmentation = [Path.source.root '\forward_problem_pipeline\segmentation'];
-Path.source.segmentationFT = [Path.source.segmentation '\fieldtrip'];
-Path.source.segmentationMRTIM = [Path.source.segmentation '\mrtim'];
-Path.source.nrrd = [Path.source.root '\external\nrrd_read_write_rensonnet'];
 
 % Output:
 Path.data = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data';
@@ -48,9 +41,8 @@ Info.fieldtrip.method = 'fieldtrip';
 Info.fieldtrip.nLayers = cfgFT.nLayers;
 Info.fieldtrip.mriSegmented = [cfgFT.output '\mri_segmented.mat'];
 Info.fieldtrip.mriPrepro = [cfgFT.output '\mri_prepro.mat'];
-%% TODO uncomment
-%addpath(Path.source.segmentationFT)
-%mriSegmented = segmentation_fieldtrip(cfgFT);
+%%
+mriSegmented = segmentation_fieldtrip(cfgFT);
 
 %% Segment MRI by MR-TIM
 % See 'run_segmentation_mrtim.m'
@@ -67,7 +59,6 @@ Info.mrtim.nLayers = 12;
 Info.mrtim.mriSegmented = [cfgMRTIM.output '\mri_segmented.mat'];
 Info.mrtim.mriPrepro = [cfgMRTIM.output '\anatomy_prepro.nii']; % TODO ? anatomy_prepro_mni.nii
 %%
-addpath(Path.source.segmentationMRTIM)
 segmentation_mrtim(cfgMRTIM);
 
 %% Ground Truth Comaparison
@@ -90,6 +81,8 @@ elseif cfgGT.seg.nLayers == 5
 elseif cfgGT.seg.nLayers == 12
     cfgGT.seg.colormap = [prism(3); lines(7); parula(2)]; % TODO
 end
+
+%cfgGT.swap = true;
 
 cfgGT.path.fieldtrip = Path.fieldtrip;
 segName = [char(cfgGT.seg.method) sprintf('%d',cfgGT.seg.nLayers)];
