@@ -2,20 +2,15 @@ function [mriSegmented] = segmentation_fieldtrip(Config)
 %% SEGMENTATION_FIELDTRIP
 %
 % Config:
-% Config.coordsys   - if set will overwrite mri.coordsys with given value
+%   Config.coordsys   - if set will overwrite mri.coordsys with given value
 %
-% TODO
+%   TODO
+%   Config.suffix
 
 %% Import
 wd = fileparts(mfilename('fullpath'));
 addpath(genpath(wd));
 addpath(genpath([wd '\..\..\..\common']));
-
-%% Innit FieldTrip
-check_required_field(Config, 'path');
-check_required_field(Config.path, 'fieldtrip');
-addpath(Config.path.fieldtrip)
-ft_defaults
 
 %% Check Config
 if isfield(Config, 'mriPrepro')
@@ -28,13 +23,18 @@ end
 
     
 check_required_field(Config, 'output');
+suffix = '';
+if isfield(Config, 'suffix')
+    Config.suffix = convertStringsToChars(Config.suffix);
+    suffix = ['_' Config.suffix];
+end
 Config = ft_seg_set_nlayers(Config);
 if iscell(Config.nLayers)
     Config.nLayers = cell2mat(Config.nLayers);
 end
 for i = 1:length(Config.nLayers)
     outputFieldName{i} = ['output' num2str(Config.nLayers(i)) 'layers'];
-    Config.(outputFieldName{i}) = [Config.output '\fieldtrip' num2str(Config.nLayers(i))];
+    Config.(outputFieldName{i}) = [Config.output '\fieldtrip' num2str(Config.nLayers(i)) suffix];
     [outputPath{i}, imgPath{i}] = create_output_folder(Config.(outputFieldName{i}));
 end
 
