@@ -1,6 +1,11 @@
+%% Import source code & Init toolboxes
+close all
+clear variables
+addpath_source;
+
 %% Paths & Names - Set manually
 Path.output.root = 'S:\BP_MIDA\analysis';
-Path.output.nudz = [Path.output '\NUDZ'];
+Path.output.nudz = [Path.output.root '\NUDZ'];
 
 methods =       {'fieldtrip',                 'fieldtrip',                 'mrtim'};
 layers =        [ 3,                           5,                           12];
@@ -9,9 +14,6 @@ suffixes =      {'anatomy_prepro',            'anatomy_prepro',            ''};
 segFileName = 'mri_segmented.mat';
 sourcemodelFileName = 'sourcemodel.mat';
 sourcemodelVarName = 'sourcemodel';
-
-%% Import source code & Init toolboxes
-addpath_source
 
 %% Get paths to segmentations
 methods = convertStringsToChars(methods);
@@ -23,9 +25,9 @@ segmentations = cell(1, nSegmentations);
 for m = 1:nSegmentations
     suffix = '';
     if ~isempty(suffixes{m})
-        suffix = ['_' suffixes{m}];
+        suffixes{m} = ['_' suffixes{m}];
     end
-    segmentations{m} = [methods{m} num2str(layers(m)) suffix];
+    segmentations{m} = [methods{m} num2str(layers(m)) suffixes{m}];
 end
 
 subjects = dir([Path.output.nudz '\*_*_*']);
@@ -51,6 +53,7 @@ pairs = nchoosek(1:nSegmentations, 2);
 nPairs = length(pairs);
 for s = 1:nSubjects
     Sourcemodel = struct;
+    loadSuccess = true;
     for m = 1:nSegmentations
         %% Prepare model
         cfgPipeline.subjectName = subjects(s).name;
@@ -58,16 +61,24 @@ for s = 1:nSubjects
             Path.(subjects(s).name).segmentation.(segmentations{m});
         cfgPipeline.model.fieldtrip.mriSegmented.method = methods{m};
         cfgPipeline.model.fieldtrip.mriSegmented.nLayers = layers(m);
+        cfgPipeline.model.fieldtrip.suffix = suffixes{m};
         forward_problem_pipeline(cfgPipeline);
         
         %% Load sourcemodel for check
         sourcemodelPath = [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
-        Data = load(sourcemodelPath, sourcemodelVarName);
-        sourcemodel = Data.(sourcemodelVarName);
-        Sourcemodel.(segmentations{m}) = rmfield(sourcemodel, 'cfg');
+        if exist(sourcemodelPath, "file")
+            Data = load(sourcemodelPath, sourcemodelVarName);
+            sourcemodel = Data.(sourcemodelVarName);
+            Sourcemodel.(segmentations{m}) = rmfield(sourcemodel, 'cfg');
+        else
+            loadSuccess = false;
+        end
     end
     
     %% Check if all sourcemodels match
+    if ~loadSuccess
+        continue
+    end
     for p = 1:nPairs
         sourcemodelA = Sourcemodel.(segmentations{pairs(p,1)});
         sourcemodelB = Sourcemodel.(segmentations{pairs(p,2)});

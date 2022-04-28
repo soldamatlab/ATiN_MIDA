@@ -1,4 +1,6 @@
 %% Import source code & Init toolboxes
+close all
+clear variables
 addpath_source;
 
 %% Define paths

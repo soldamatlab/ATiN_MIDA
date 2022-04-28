@@ -30,7 +30,7 @@ check_required_field(Config, 'mriSegmented');
 % TODO add previous submodule option
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
-Config.mriSegmented.method = convertStringToChars(Config.mriSegmented.method);
+Config.mriSegmented.method = convertStringsToChars(Config.mriSegmented.method);
 check_required_field(Config.mriSegmented, 'nLayers');
 
 alignElectrodes = isfield(Config.mriSegmented, 'norm2ind');

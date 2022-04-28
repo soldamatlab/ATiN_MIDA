@@ -1,9 +1,11 @@
+%% Import source code & Init toolboxes
+close all
+clear variables
+addpath_source
+
 %% Paths
 Path.data.nudz.root = 'S:\BP_MIDA\data\MR';
 Path.output = 'S:\BP_MIDA\analysis';
-
-%% Import source code & Init toolboxes
-addpath_source
 
 %% Find & Convert & Segment data
 subjects = dir([Path.data.nudz.root '\*_*_*']);

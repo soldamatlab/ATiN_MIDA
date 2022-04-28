@@ -6,6 +6,10 @@ if cfgClass == "char" || cfgClass == "string"
     stringConfig = true;
 elseif cfgClass == "cell"
     stringConfig = false;
+elseif cfgClass == "struct"
+    SegQueue = struct;
+    SegQueue.Config = segConfig;
+    return
 else
     warning(warningMsg)
     SegQueue = struct;
