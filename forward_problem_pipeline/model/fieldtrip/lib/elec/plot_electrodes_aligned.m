@@ -2,7 +2,7 @@ function [fig] = plot_electrodes_aligned(mesh, elecProjected, elecTemplate)
 %% PLOT_ELECTRODES_ALIGNED
 %  Adopted from a script in 'ATiN_MIDA_Standa_project' by Stanislav Jiricek.
 fig = figure('Position', get(0, 'Screensize'));
-fig=tiledlayout('flow');
+tiledlayout('flow');
 nexttile
 ft_plot_mesh(mesh,'surfaceonly',1,'facecolor', 'skin', 'edgecolor', 'none','facealpha',0.3)
 ft_plot_sens(elecProjected,'facecolor','b','elecsize',20);

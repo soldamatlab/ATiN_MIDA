@@ -25,9 +25,9 @@ segmentations = cell(1, nSegmentations);
 for m = 1:nSegmentations
     suffix = '';
     if ~isempty(suffixes{m})
-        suffixes{m} = ['_' suffixes{m}];
+        suffix = ['_' suffixes{m}];
     end
-    segmentations{m} = [methods{m} num2str(layers(m)) suffixes{m}];
+    segmentations{m} = [methods{m} num2str(layers(m)) suffix];
 end
 
 subjects = dir([Path.output.nudz '\*_*_*']);
@@ -61,7 +61,9 @@ for s = 1:nSubjects
             Path.(subjects(s).name).segmentation.(segmentations{m});
         cfgPipeline.model.fieldtrip.mriSegmented.method = methods{m};
         cfgPipeline.model.fieldtrip.mriSegmented.nLayers = layers(m);
-        cfgPipeline.model.fieldtrip.suffix = suffixes{m};
+        if ~isempty(suffixes{m})
+            cfgPipeline.model.fieldtrip.suffix = suffixes{m};
+        end
         forward_problem_pipeline(cfgPipeline);
         
         %% Load sourcemodel for check

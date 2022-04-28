@@ -2,6 +2,11 @@ function [conductivity, tissueLabel] = get_conductivity(method, nLayers)
 const_conductivity;
 
 if method == "fieldtrip"
+    if nLayers == 3
+        conductivity = FIELDTRIP_3_COND;
+        tissueLabel = FIELDTRIP_3_LABEL;
+        return
+    end
     if nLayers == 5
         conductivity = FIELDTRIP_5_COND;
         tissueLabel = FIELDTRIP_5_LABEL;

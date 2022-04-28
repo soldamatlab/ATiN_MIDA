@@ -205,7 +205,7 @@ ft_plot_sens(elec,'facecolor','b','elecsize',20);
 view(135,30)
 print([imgPath '\electrodes_projected'],'-dpng')
 if ~visualize
-    clos(fig)
+    close(fig)
 end
 
 %% Create sourcemodel
@@ -243,7 +243,11 @@ cfg.method = 'hexahedral';
 
 % TODO un-hardcode this:
 if Config.mriSegmented.method == "fieldtrip"
-    cfg.tissue = {'gray'};
+    if Config.mriSegmented.nLayers == 3
+        cfg.tissue = {'brain'};
+    elseif Config.mriSegmented.nLayers == 5
+        cfg.tissue = {'gray'};
+    end
 elseif Config.mriSegmented.method == "mrtim"
     cfg.tissue = {'bgm', 'cgm'};
 else
