@@ -17,14 +17,11 @@ function [mriSegmented] = segmentation_mrtim(Config)
 %   ! Calling 'restoredefaultpath' before this function will result in
 %   "Unrecognized function or variable 'cfg_util'." error.
 
-%% Config
-check_required_field(Config, 'path');
-check_required_field(Config.path, 'spm');
-check_required_field(Config.path, 'mrtim');
-check_required_field(Config.path, 'fieldtrip');
-addpath(Config.path.fieldtrip)
-ft_defaults
+%% Innit
+addpath_source;
+spm('defaults', 'FMRI');
 
+%% Config
 Config = set_nlayers(Config);
 
 if isfield(Config, 'batch')
@@ -55,11 +52,6 @@ visualize = Config.visualize;
 
 Config.method = 'mrtim';
 save([Config.output '\config'], 'Config');
-
-%% Innit SPM
-addpath(Config.path.spm)
-addpath(Config.path.mrtim)
-spm('defaults', 'FMRI');
 
 %% Run SPM
 matlabbatch = get_batch(Config);

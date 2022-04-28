@@ -1,8 +1,4 @@
 %% Paths
-Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
-Path.spm = [matlabroot '\toolbox\spm12'];
-Path.mrtim = [matlabroot '\toolbox\spm12\toolbox\mrtim'];
-
 Path.data.nudz.root = 'S:\BP_MIDA\data\MR';
 Path.output = 'S:\BP_MIDA\analysis';
 
@@ -27,11 +23,7 @@ cfgPipeline.resultsPath = Path.output;
 cfgPipeline.dataName = 'NUDZ';
 cfgPipeline.visualize = false;
 cfgPipeline.dialog = false;
-cfgPipeline.segmentation.fieldtrip.path.fieldtrip = Path.fieldtrip;
 cfgPipeline.segmentation.fieldtrip.nLayers = [3 5];
-cfgPipeline.segmentation.mrtim.path.spm = Path.spm;
-cfgPipeline.segmentation.mrtim.path.mrtim = Path.mrtim;
-cfgPipeline.segmentation.mrtim.path.fieldtrip = Path.fieldtrip;
 cfgPipeline.segmentation.mrtim.nLayers = 12;
 
 nFiles = length(subjects);

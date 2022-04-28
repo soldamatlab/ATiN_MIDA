@@ -7,10 +7,8 @@ function [mriSegmented] = segmentation_fieldtrip(Config)
 %   TODO
 %   Config.suffix
 
-%% Import
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath(wd));
-addpath(genpath([wd '\..\..\..\common']));
+%% Init
+addpath_source;
 
 %% Check Config
 if isfield(Config, 'mriPrepro')

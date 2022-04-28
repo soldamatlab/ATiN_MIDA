@@ -1,4 +1,20 @@
 function [] = model_fieldtrip(Config)
+% MODEL_FIELDTRIP takes segmented MRI, creates a mesh, headmodel and
+% sourcemodel, aligns and projects electrode template to the mesh surface
+% and computes the leadfield.
+%
+% Required:
+%   Config.mriSegmented
+%   Config.mriSegmented.path
+%   Config.mriSegmented.method
+%   Config.mriSegmented.nLayers
+%   Config.output
+%
+% Optional:
+%   Config.mriSegmented.norm2ind
+%   Config.suffix
+%   Config.visualize
+
 %% Init
 addpath_source;
 const_path % inits 'Path' struct
@@ -14,6 +30,7 @@ check_required_field(Config, 'mriSegmented');
 % TODO add previous submodule option
 check_required_field(Config.mriSegmented, 'path');
 check_required_field(Config.mriSegmented, 'method');
+Config.mriSegmented.method = convertStringToChars(Config.mriSegmented.method);
 check_required_field(Config.mriSegmented, 'nLayers');
 
 alignElectrodes = isfield(Config.mriSegmented, 'norm2ind');
@@ -25,8 +42,15 @@ else
 end
 
 check_required_field(Config, 'output');
-Config.output = [Config.output '\fieldtrip'];
-[outputPath, imgPath] = create_output_folder(Config.output);
+suffix = '';
+if isfield(Config, 'suffix')
+    Config.suffix = convertStringsToChars(Config.suffix);
+    suffix = ['_' Config.suffix];
+end
+methodName = Config.mriSegmented.method;
+nLayersName = num2str(Config.mriSegmented.nLayers);
+outputPath = [Config.output '\' methodName nLayersName suffix];
+[outputPath, imgPath] = create_output_folder(outputPath);
 
 visualize = false;
 if isfield(Config, 'visualize')
