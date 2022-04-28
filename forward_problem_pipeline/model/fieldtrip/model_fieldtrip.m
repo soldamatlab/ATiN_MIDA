@@ -1,20 +1,13 @@
 function [] = model_fieldtrip(Config)
-%% Import
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath(wd));
-addpath(genpath([wd '\..\..\..\common']));
-
-%% Innit FieldTrip
-check_required_field(Config, 'path');
-check_required_field(Config.path, 'fieldtrip');
-addpath(Config.path.fieldtrip)
-ft_defaults
+%% Init
+addpath_source;
+const_path % inits 'Path' struct
 
 %% Check Config
 Info = struct;
 
 % load template to test the path
-elecTemplatePath = [wd '\..\data\elec_template\GSN-HydroCel-257.sfp'];
+elecTemplatePath = Path.data.elec.HydroCel;
 [~] = ft_read_sens(elecTemplatePath);
 
 check_required_field(Config, 'mriSegmented');
@@ -47,7 +40,16 @@ save([outputPath '\config'], 'Config');
 %mriSegmented = ft_read_mri(Config.mriSegmented.path);
 mriSegmented = load_var_from_mat('mriSegmented', Config.mriSegmented.path);
 
+tissueCfg = struct;
+tissueCfg.method = Config.mriSegmented.method;
+tissueCfg.nLayers = Config.mriSegmented.nLayers;
+mriSegmented = ensure_tissue_and_masks(tissueCfg, mriSegmented);
+
 %% Create mesh
+mriSegmentedMaskless = remove_tissue_masks(tissueCfg, mriSegmented);
+% 'ft_prepare_mesh' cannot determine the field that represents
+% the segmentation with tissue masks present
+
 cfg            = struct;
 cfg.shift      = 0.3;
 cfg.method     = 'hexahedral';
@@ -55,7 +57,7 @@ cfg.downsample = 2; % TODO test no downsample
 % cfg.resolution = 1; % in mm, tutorial
 % TODO is cfg.resolution forbidden % ? maybe n of elements
 Info.mesh.ft_prepare_mesh.cfg = cfg;
-mesh = ft_prepare_mesh(cfg, mriSegmented);
+mesh = ft_prepare_mesh(cfg, mriSegmentedMaskless);
 save([outputPath '\mesh'], 'mesh');
 
 %% visualize

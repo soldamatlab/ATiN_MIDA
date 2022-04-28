@@ -6,7 +6,7 @@
 % end
 
 %% DO NOT REORDER LABELS
-% Reordering labels requires fixing all usages too.
+% Reordering labels requires fixing some usages too.
 
 % ___ FieldTrip 3 layers _________________________________________________
 FIELDTRIP_3_COND  = [ 0.33    0.01    0.43];

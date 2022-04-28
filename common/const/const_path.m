@@ -1,5 +1,6 @@
 %% To Set Manually:
-sourceCodeRoot = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project';
+sourceCodeRoot = addpath_source;
+%sourceCodeRoot = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\ATiN_MIDA_Matous_project';
 
 fieldtripPath = [matlabroot '\toolbox\fieldtrip'];
 spmPath = [matlabroot '\toolbox\spm12'];
@@ -37,6 +38,7 @@ if exist('sciDataRoot', 'var')
 else
     Path.data.sci = [Path.source.root '\data\SCI'];
 end
+Path.data.elec.HydroCel = [Path.source.model.root '\data\elec_template\GSN-HydroCel-257.sfp'];
 
 %% Clear
 clear sourceCodeRoot fieldtripPath spmPath mrtimPath nudzDataRoot sciDataRoot analysisRoot

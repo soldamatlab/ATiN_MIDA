@@ -5,8 +5,6 @@ addpath_source;
 cfg = struct;
 
 %% Paths
-cfg.path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
-
 outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\model_fieldtrip_test';
 run = '01';
 cfg.output = [outputPath '\' run];
