@@ -9,7 +9,7 @@
 % Reordering labels requires fixing some usages too.
 
 % ___ FieldTrip 3 layers _________________________________________________
-FIELDTRIP_3_COND  = [ 0.33    0.01    0.43];
+FIELDTRIP_3_COND  = [ 0.33    0.01    0.43  ];
 FIELDTRIP_3_LABEL = {'brain' 'skull' 'scalp'};
 
 % ___ FieldTrip 5 layers _________________________________________________
@@ -36,16 +36,12 @@ MRTIM_6_LABEL = {'' '' '' '' '' ''};
 %11: eyes
 %12: skin
 %                  1     2     3     4     5           6     7           8          9        10    11     12
-MRTIM_12_COND  = [ 0.47  0.47  0.22  0.22  0.42        1.71  0.048       0.006      0.77     0.11  0.92   0.11 ];
-MRTIM_12_LABEL = {'bgm' 'cgm' 'bwm' 'cwm' 'brainstem' 'csf' 'spongiosa' 'compacta' 'muscle' 'fat' 'eyes' 'skin'};
-% sources:
-% TODO ? better sources
-%
-% 1=2 3=4 6 7 8
-% https://pubmed.ncbi.nlm.nih.gov/31054104/#:~:text=Assigning%20conductivity%20as%3A%200.41%20S,m%20for%20WM%20and%2050.4
-%
-% 5 9 11 10=12
-% Table 1. https://journals.plos.org/plosone/article/figures?id=10.1371/journal.pone.0183168
+MRTIM_12_COND  = [ 0.3333 0.2564 0.1429 0.1099 0.1538      1.5385 0.0400      0.0063     0.1000   0.0400 0.5000 0.4348];
+MRTIM_12_LABEL = {'bgm'  'cgm'  'bwm'  'cwm'  'brainstem' 'csf'  'spongiosa' 'compacta' 'muscle' 'fat'  'eyes' 'skin' };
+% source:
+% Liu Q, Farahibozorg S, Porcaro C, Wenderoth N, Mantini D. Detecting large-scale networks in the human brain using high-density electroencephalography. 2017
+% (Liu 2017)
+% Supporting Information Table S2
 
 % ___ SCI Segmentation ___________________________________________________
 % Manually plotted and determined:
