@@ -7,9 +7,9 @@ addpath_source;
 Path.output.root = 'S:\BP_MIDA\analysis';
 Path.output.nudz = [Path.output.root '\NUDZ'];
 
-methods =       {'fieldtrip',                 'fieldtrip',                 'mrtim'};
-layers =        [ 3,                           5,                           12];
-suffixes =      {'anatomy_prepro',            'anatomy_prepro',            ''};
+methods =  {'fieldtrip',                 'fieldtrip',                 'mrtim'};
+layers =   [ 3,                           5,                           12    ];
+suffixes = {'anatomy_prepro',            'anatomy_prepro',            ''     };
 
 segFileName = 'mri_segmented.mat';
 sourcemodelFileName = 'sourcemodel.mat';
@@ -50,7 +50,7 @@ cfgPipeline.model.fieldtrip = struct;
 
 sourcemodelCheck = NaN(nSubjects, 1);
 pairs = nchoosek(1:nSegmentations, 2);
-nPairs = length(pairs);
+nPairs = size(pairs, 1);
 for s = 1:nSubjects
     Sourcemodel = struct;
     loadSuccess = true;
