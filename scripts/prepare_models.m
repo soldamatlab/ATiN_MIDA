@@ -7,9 +7,9 @@ addpath_source;
 Path.output.root = 'S:\BP_MIDA\analysis';
 Path.output.nudz = [Path.output.root '\NUDZ'];
 
-methods =  {'fieldtrip',                 'fieldtrip',                 'mrtim'};
-layers =   [ 3,                           5,                           12    ];
-suffixes = {'anatomy_prepro',            'anatomy_prepro',            ''     };
+methods =  {'fieldtrip',                 'mrtim'};
+layers =   [ 5,                           12    ];
+suffixes = {'anatomy_prepro',            ''     };
 
 segFileName = 'mri_segmented.mat';
 sourcemodelFileName = 'sourcemodel.mat';
@@ -19,6 +19,7 @@ sourcemodelVarName = 'sourcemodel';
 methods = convertStringsToChars(methods);
 suffixes = convertStringsToChars(suffixes);
 segFileName = convertStringsToChars(segFileName);
+sourcemodelFileName = convertStringsToChars(sourcemodelFileName);
 
 nSegmentations = length(methods);
 segmentations = cell(1, nSegmentations);
@@ -36,6 +37,8 @@ for s = 1:nSubjects
     for m = 1:nSegmentations
         Path.(subjects(s).name).segmentation.(segmentations{m}) =...
             [subjects(s).folder '\' subjects(s).name '\segmentation\' segmentations{m} '\' segFileName];
+        Path.(subjects(s).name).sourcemodel.(segmentations{m}) =...
+            [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
     end
 end
 
@@ -45,25 +48,38 @@ cfgPipeline.resultsPath = Path.output.root;
 cfgPipeline.dataName = 'NUDZ';
 cfgPipeline.visualize = false;
 cfgPipeline.dialog = false;
-cfgPipeline.model = struct;
-cfgPipeline.model.fieldtrip = struct;
+
+modelFT = struct;
+modelFT.mriSegmented.method = methods;
+modelFT.mriSegmented.nLayers = layers;
+modelFT.suffix = suffixes;
+modelFT.sourcemodel = 'matchpos';
 
 sourcemodelCheck = NaN(nSubjects, 1);
 pairs = nchoosek(1:nSegmentations, 2);
 nPairs = size(pairs, 1);
 for s = 1:nSubjects
-    Sourcemodel = struct;
-    loadSuccess = true;
+    cfgPipeline.subjectName = subjects(s).name;
+    modelFT.mriSegmented.path = cell(1, nSegmentations);
     for m = 1:nSegmentations
-        %% Prepare model
-        cfgPipeline.subjectName = subjects(s).name;
-        cfgPipeline.model.fieldtrip.mriSegmented.path =...
-            Path.(subjects(s).name).segmentation.(segmentations{m});
-        cfgPipeline.model.fieldtrip.mriSegmented.method = methods{m};
-        cfgPipeline.model.fieldtrip.mriSegmented.nLayers = layers(m);
-        if ~isempty(suffixes{m})
-            cfgPipeline.model.fieldtrip.suffix = suffixes{m};
+        modelFT.mriSegmented.path{m} = Path.(subjects(s).name).segmentation.(segmentations{m});
+    end   
+
+    forward_problem_pipeline(cfgPipeline);
+    
+    %% Check if sourcemodels match
+    sourcemodels = cell(1, nSegmentations);
+    for m = 1:nSegmentations
+        sourcemodels{m} = load(Path.(subjects(s).name).sourcemodel.(segmentations{m}), 'sourcemodel');
+    end
+    for p = 1:nPairs
+        sourcemodelA = sourcemodels{pairs(p,1)}.sourcemodel;
+        sourcemodelB = sourcemodels{pairs(p,2)}.sourcemodel;
+        if ~isequal(sourcemodelA.pos, sourcemodelB.pos)...
+                || ~isequal(sourcemodelA.dim, sourcemodelB.dim)
+            sourcemodelCheck(s) = false;
+        else
+            sourcemodelCheck(s) = true;
         end
-        forward_problem_pipeline(cfgPipeline);
     end
 end
