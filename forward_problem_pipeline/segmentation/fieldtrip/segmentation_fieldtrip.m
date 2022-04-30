@@ -61,7 +61,7 @@ if preprocess
     if isfield(Config, 'coordsys')
         mriOriginal.coordsys = Config.coordsys;
     end
-    if isfield(mriOriginal, 'coordsys') && mriOriginal.coordsys == "scanras" % FT throws errors with scanras
+    if isfield(mriOriginal, 'coordsys') && strcmp(mriOriginal.coordsys, 'scanras') % FT throws errors with scanras
         mriOriginal.coordsys = 'acpc';
         warning("Replacing MRI.coordsys 'scanras' with 'acpc'.")
     end
