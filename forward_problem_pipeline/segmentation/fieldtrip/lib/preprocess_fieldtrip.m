@@ -38,7 +38,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mriPrepro);
 set(fig, 'Name', 'MRI resliced')
-ft_seg_print(imgPath, 'mri_resliced');
+multipath_print(imgPath, 'mri_resliced');
 if ~Config.visualize
     close(fig)
 end
@@ -60,7 +60,7 @@ cfg.spmversion = 'spm12';
 
 Info.ft_volumebiascorrect.cfg = cfg;
 mriPrepro = ft_volumebiascorrect(cfg, mriPrepro);
-ft_seg_save(outputPath, 'mri_prepro', 'mriPrepro', mriPrepro);
+multipath_save(outputPath, 'mri_prepro', mriPrepro, 'mriPrepro');
 
 %% visualize
 cfg = struct;
@@ -68,7 +68,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mriPrepro);
 set(fig, 'Name', 'MRI bias-corrected')
-ft_seg_print(imgPath, 'mri_bfc');
+multipath_print(imgPath, 'mri_bfc');
 if ~Config.visualize
     close(fig)
 end
@@ -80,13 +80,13 @@ cfg.nonlinear = 'no';
 cfg.spmversion = 'spm12';
 Info.ft_volumenormalise.cfg = cfg;
 mriNormalised = ft_volumenormalise(cfg, mriPrepro);
-ft_seg_save(outputPath, 'mri_normalised', 'mriNormalised', mriNormalised);
+multipath_save(outputPath, 'mri_normalised', mriNormalised, 'mriNormalised');
 
 
 %ind2norm = mriNormalised.params.Affine; % same as 'mriNormalised.cfg.spmparams.Affine'
 ind2norm = mriNormalised.initial;
 norm2ind = ind2norm^-1;
-ft_seg_save(outputPath, 'norm2ind', 'norm2ind', norm2ind);
+multipath_save(outputPath, 'norm2ind', norm2ind, 'norm2ind');
 
 
 %% visualize
@@ -95,7 +95,7 @@ cfg.location = 'center';
 fig = figure;
 ft_sourceplot(cfg, mriNormalised);
 set(fig, 'Name', 'MRI normalised')
-ft_seg_print(imgPath, 'mri_normalised');
+multipath_print(imgPath, 'mri_normalised');
 if ~Config.visualize
     close(fig)
 end

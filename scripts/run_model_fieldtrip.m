@@ -5,38 +5,41 @@ addpath_source;
 cfg = struct;
 
 %% Paths
-outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\model_fieldtrip_test';
+outputPath = 'S:\BP_MIDA\test\model_fieldtrip';
 run = '01';
 cfg.output = [outputPath '\' run];
 
-%% Segmented MRI
-dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out';
+%% Model one segmentation
+segmentationPath = 'S:\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\segmentation\fieldtrip5';
+cfg.mriSegmented.path = [segmentationPath '\mri_segmented.mat'];
+cfg.mriSegmented.method = 'fieldtrip';                  % 'fieldtrip', 'mrtim'
+cfg.mriSegmented.nLayers = 5;                           % 3, 5, 12
+cfg.mriSegmented.norm2ind = [segmentationPath '\norm2ind.mat'];
 
-% MR-TIM segmentation:
-%cfg.mriSegmented.path = [dataPath '\test\mrtim\ANDROVICOVA_RENATA\01\anatomy_prepro_segment.nii'];
-%cfg.mriSegmented.method = 'mrtim';
-%cfg.mriSegmented.nLayers = 12; % 6 or 12
-% ! TODO is MR-TIM output in norm space?
+%% Model more segmentations and match dipole positions of sourcemodels
+segmentationPath1 = 'S:\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\segmentation\fieldtrip5_anatomy_prepro';
+path1 = [segmentationPath1 '\mri_segmented.mat'];
+method1 = 'fieldtrip';
+nLayers1 = 5;
+suffix1 = 'anatomy_prepro';
 
-%FieldTrip segmentation:
-cfg.mriSegmented.path = [dataPath '\segmentation_fieldtrip_test\03\mri_segmented.mat'];
-cfg.mriSegmented.method = 'fieldtrip';
-cfg.mriSegmented.nLayers = 5;
-cfg.mriSegmented.norm2ind = [dataPath '\segmentation_fieldtrip_test\03\norm2ind.mat']; % TODO add support for var
+segmentationPath2 = 'S:\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\segmentation\mrtim12';
+path2 = [segmentationPath2 '\mri_segmented.mat'];
+method2 = 'mrtim';
+nLayers2 = 12;
 
-%% Miscellaneous
+cfg.mriSegmented.path = {path1, path2};
+cfg.mriSegmented.method = {method1, method2};
+cfg.mriSegmented.nLayers = [nLayers1, nLayers2];
+%cfg.mriSegmented.norm2ind = {norm2ind1, norm2ind2};
+cfg.suffix = {suffix1, ''};
+cfg.sourcemodel = 'matchpos';
+
+%% Options
 cfg.visualize = true;
 
 %% For manual run of parts of model_fieldtrip.m
-%Config = cfg; clear cfg; % for manual run of parts of the pipeline
-
-% Import here and skip '%% Import' in model_fieldtrip.m
-% (Active folder should be 'ATiN_MIDA_Matous_project\model\fieldtrip'.)
-%addpath(genpath('./'));
-%addpath('..\..\..\common');
-
-% Comment initialization of [elecTemplatePath] in model_fieldtrip.m
-%elecTemplatePath = '..\data\elec_template\GSN-HydroCel-257.sfp';
+%Config = cfg; clear cfg;
 
 %% Run
 model_fieldtrip(cfg);

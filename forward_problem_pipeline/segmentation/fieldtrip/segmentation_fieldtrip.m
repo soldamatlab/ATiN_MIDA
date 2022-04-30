@@ -1,11 +1,18 @@
 function [mriSegmented] = segmentation_fieldtrip(Config)
 %% SEGMENTATION_FIELDTRIP
 %
-% Config:
-%   Config.coordsys   - if set will overwrite mri.coordsys with given value
+% Required:
+%   Config.mri       = path to mri, will be preprocessed by FT
+% or
+%   Config.mriPrepro = path to mri, won't be preprocessed
 %
-%   TODO
+%   Config.nLayers   = 3, 5 or [3, 5]
+%   Config.output
+%
+%   Optional:
+%   Config.coordsys   - if set will overwrite mri.coordsys with given value
 %   Config.suffix
+%   Config.visualize
 
 %% Init
 addpath_source;
@@ -30,6 +37,10 @@ Config = ft_seg_set_nlayers(Config);
 if iscell(Config.nLayers)
     Config.nLayers = cell2mat(Config.nLayers);
 end
+nNLayers = length(Config.nLayers);
+outputFieldName = cell(1, nNLayers);
+outputPath = cell(1, nNLayers);
+imgPath = cell(1, nNLayers);
 for i = 1:length(Config.nLayers)
     outputFieldName{i} = ['output' num2str(Config.nLayers(i)) 'layers'];
     Config.(outputFieldName{i}) = [Config.output '\fieldtrip' num2str(Config.nLayers(i)) suffix];
@@ -41,7 +52,7 @@ if ~isfield(Config, 'visualize')
 end
 
 Config.method = 'fieldtrip';
-ft_seg_save(outputPath, 'config', 'Config', Config);
+multipath_save(outputPath, 'config', Config, 'Config');
 Info = struct;
 
 if preprocess
@@ -54,7 +65,7 @@ if preprocess
         mriOriginal.coordsys = 'acpc';
         warning("Replacing MRI.coordsys 'scanras' with 'acpc'.")
     end
-    ft_seg_save(outputPath, 'mri_original', 'mriOriginal', mriOriginal);
+    multipath_save(outputPath, 'mri_original', mriOriginal, 'mriOriginal');
 
     %% visualize
     cfg = struct;
@@ -64,7 +75,7 @@ if preprocess
     fig = figure;
     ft_sourceplot(cfg, mriOriginal);
     set(fig, 'Name', 'MRI original')
-    ft_seg_print(imgPath, 'mri_original');
+    multipath_print(imgPath, 'mri_original');
     if ~Config.visualize
         close(fig)
     end
@@ -86,7 +97,7 @@ else
         mriPrepro.coordsys = 'acpc';
         warning("Replacing MRI.coordsys 'scanras' with 'acpc'.")
     end
-    ft_seg_save(outputPath, 'mri_prepro', 'mriPrepro', mriPrepro);
+    multipath_save(outputPath, 'mri_prepro', mriPrepro, 'mriPrepro');
     
     %% visualize
     cfg = struct;
@@ -94,7 +105,7 @@ else
     fig = figure;
     ft_sourceplot(cfg, mriPrepro);
     set(fig, 'Name', 'Preprocessed MRI')
-    ft_seg_print(imgPath, 'mri_prepro');
+    multipath_print(imgPath, 'mri_prepro');
     if ~Config.visualize
         close(fig)
     end

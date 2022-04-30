@@ -65,30 +65,5 @@ for s = 1:nSubjects
             cfgPipeline.model.fieldtrip.suffix = suffixes{m};
         end
         forward_problem_pipeline(cfgPipeline);
-        
-        %% Load sourcemodel for check
-        sourcemodelPath = [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
-        if exist(sourcemodelPath, "file")
-            Data = load(sourcemodelPath, sourcemodelVarName);
-            sourcemodel = Data.(sourcemodelVarName);
-            Sourcemodel.(segmentations{m}) = rmfield(sourcemodel, 'cfg');
-        else
-            loadSuccess = false;
-        end
-    end
-    
-    %% Check if all sourcemodels match
-    if ~loadSuccess
-        continue
-    end
-    for p = 1:nPairs
-        sourcemodelA = Sourcemodel.(segmentations{pairs(p,1)});
-        sourcemodelB = Sourcemodel.(segmentations{pairs(p,2)});
-        if ~isequal(sourcemodelA, sourcemodelB)
-            sourcemodelCheck(s) = 0;
-        end
-    end
-    if sourcemodelCheck(s) ~= 0
-        sourcemodelCheck(s) = 1;
     end
 end
