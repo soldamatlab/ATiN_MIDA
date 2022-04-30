@@ -3,7 +3,9 @@ function [mriSegmented] = segmentation_mrtim(Config)
 %addpath_source has to be called first.
 %
 %   Required:
-%   TODO
+%   Config.mri = path to MRI in '.nii' (nifti) format
+%   Config.path.mrtim = path to MR-TIM toolbox root folder
+%                       (to load tissue probability maps)
 %
 %   Optional:
 %   Config.nLayers
@@ -22,6 +24,8 @@ addpath_source;
 spm('defaults', 'FMRI');
 
 %% Config
+check_required_field(Config, 'path');
+check_required_field(Config.path, 'mrtim');
 Config = set_nlayers(Config);
 
 if isfield(Config, 'batch')

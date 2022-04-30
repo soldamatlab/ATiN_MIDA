@@ -1,7 +1,11 @@
-function [] = model_fieldtrip(Config)
-% MODEL_FIELDTRIP takes segmented MRI, creates a mesh, headmodel and
-% sourcemodel, aligns and projects electrode template to the mesh surface
-% and computes the leadfield.
+function [sourcemodels] = model_fieldtrip(Config)
+% MODEL_FIELDTRIP takes segmented MRI(s), creates a mesh(es), headmodel(s)
+% and sourcemodel(s), aligns and projects electrode template to the mesh
+% surface(s) and computes the leadfield(s). Returns sourcemodel(s)
+% containing leadfield(s) as struct(s) in a cell array.
+%
+% Use as
+%   [sourcemodels] = model_fieldtrip(Config)
 %
 % Required:
 %   Config.mriSegmented

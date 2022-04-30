@@ -5,15 +5,14 @@ addpath_source;
 cfg = struct;
 
 %% Paths
-outputPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\segmentation_fieldtrip_test';
-run = '01';
-cfg.output = [outputPath '\' run];
+%cfg.mri = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data\BINO\Structural\S1\0003_t1_sag_mpr_3D_v01\MR.1.3.12.2.1107.5.2.43.66063.2015121708585823020301817.IMA';
 
-dataPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\data';
-mri = '\MR\ANDROVICOVA_RENATA_8753138768\HEAD_VP03_GTEN_20181204_120528_089000\T1_SAG_MPR_3D_1MM_ISO_P2_0002\ANDROVICOVA_RENATA.MR.HEAD_VP03_GTEN.0002.0001.2018.12.12.08.59.13.218838.497728628.IMA';
-cfg.mri = [dataPath mri];
+cfg.mriPrepro = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis\BINO\S1\segmentation\mrtim12\anatomy_prepro.nii';
+cfg.suffix = 'anatomy_prepro';
 
+cfg.output = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis\BINO\S1\segmentation';
 cfg.nLayers = 5; % 3 or 5 or [3 5] for both
+cfg.coordsys = 'acpc';
 
 %% Miscellaneous
 cfg.visualize = true;
