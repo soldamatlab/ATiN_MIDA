@@ -63,8 +63,8 @@ for s = 1:nSubjects
     modelFT.mriSegmented.path = cell(1, nSegmentations);
     for m = 1:nSegmentations
         modelFT.mriSegmented.path{m} = Path.(subjects(s).name).segmentation.(segmentations{m});
-    end   
-
+    end 
+    cfgPipeline.model.fieldtrip = modelFT;
     forward_problem_pipeline(cfgPipeline);
     
     %% Check if sourcemodels match
