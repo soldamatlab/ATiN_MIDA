@@ -18,12 +18,7 @@ function [] = forward_problem_pipeline(Config)
 %
 
 %% Import
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath([wd '\lib']));
-addpath([wd '\..\common']);
-addpath([wd '\segmentation\fieldtrip']);
-addpath([wd '\segmentation\mrtim']);
-addpath([wd '\model\fieldtrip']);
+addpath_source;
 
 %% Config
 Config = set_output_path(Config);

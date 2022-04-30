@@ -32,7 +32,7 @@ elecTemplatePath = Path.data.elec.HydroCel;
 check_required_field(Config, 'mriSegmented');
 % TODO add previous submodule option
 check_required_field(Config.mriSegmented, 'path');
-Config.mriSegmented.pah = convertStringsToChars(Config.mriSegmented.path);
+Config.mriSegmented.path = convertStringsToChars(Config.mriSegmented.path);
 check_required_field(Config.mriSegmented, 'method');
 Config.mriSegmented.method = convertStringsToChars(Config.mriSegmented.method);
 check_required_field(Config.mriSegmented, 'nLayers');
@@ -395,13 +395,13 @@ for s = 1:nPath
     cfg = rm_field_data(cfg, "headmodel");
     cfg = rm_field_data(cfg, "elec");
     Infos{s}.leadfield.ft_prepare_leadfield.cfg = cfg;
-    save([outputPath '\sourcemodel'], 'sourcemodel');
+    save([outputPath{s} '\sourcemodel'], 'sourcemodel');
     sourcemodels{s} = sourcemodel; clear sourcemodel
 end
 
 %% Save info
 for s = 1:nPath
     Info = Infos{s};
-    save([outputPath '\info'], 'Info');
+    save([outputPath{s} '\info'], 'Info');
 end
 end
