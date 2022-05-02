@@ -82,6 +82,7 @@ for s = 1:nSubjects
             sourcemodels{m} = load(Path.(subjects(s).name).sourcemodel.(segmentations{m}), 'sourcemodel');
         catch
             warning("Could not load sourcemodels to check if they match.")
+            sourcemodelCheck(s) = 1;
             loadError = true;
             break
         end
@@ -94,9 +95,9 @@ for s = 1:nSubjects
         sourcemodelB = sourcemodels{pairs(p,2)}.sourcemodel;
         if ~isequal(sourcemodelA.pos, sourcemodelB.pos)...
                 || ~isequal(sourcemodelA.dim, sourcemodelB.dim)
-            sourcemodelCheck(s) = false;
+            sourcemodelCheck(s) = 2;
         else
-            sourcemodelCheck(s) = true;
+            sourcemodelCheck(s) = 0;
         end
     end
 end
