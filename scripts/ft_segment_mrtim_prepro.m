@@ -6,7 +6,7 @@ addpath_source;
 %% Define paths
 nudzAnalysisPath = 'S:\BP_MIDA\analysis\NUDZ';
 subjects = dir([nudzAnalysisPath '\*_*_*']);
-Subpath.mrtim = '\segmentation\mrtim12';
+subpathMrtim = '\segmentation\mrtim12';
 
 %% Config
 cfgPipeline = struct;
@@ -21,7 +21,7 @@ cfgFT.suffix = 'anatomy_prepro';
 nFiles = length(subjects);
 for f = 1:nFiles
     subjectPath = [subjects(f).folder '\' subjects(f).name];
-    cfgFT.mriPrepro = [subjectPath Subpath.mrtim '\anatomy_prepro.nii'];
+    cfgFT.mriPrepro = [subjectPath subpathMrtim '\anatomy_prepro.nii'];
     cfgPipeline.segmentation.fieldtrip = cfgFT;
     cfgPipeline.output = subjectPath;
  

@@ -306,18 +306,21 @@ for s = 1:nPath
 end
 
 %% Create sourcemodel
-if matchpos
-    [pos, dim] = prepare_sourcepos(mriSegmented);
-end
-sourcemodels = cell(1, nPath);
+mriBackup = cell(1, nPath);
 for s = 1:nPath
     if strcmp(Config.mriSegmented.method{s}, 'mrtim')
-        mriBackup = mriSegmented{s};
+        mriBackup{s} = mriSegmented{s};
         mriSegmented{s}.gray = mriSegmented{s}.bgm | mriSegmented{s}.cgm;
         mriSegmented{s} = rmfield(mriSegmented{s}, 'bgm');
         mriSegmented{s} = rmfield(mriSegmented{s}, 'cgm');
     end
+end
+if matchpos
+    [pos, dim] = prepare_sourcepos(mriSegmented);
+end
 
+sourcemodels = cell(1, nPath);
+for s = 1:nPath
     if isfield(Config, 'sourcemodel')
         cfg = struct;
         cfg.method = 'basedonpos';
@@ -370,12 +373,15 @@ for s = 1:nPath
     if ~visualize
         close(fig)
     end
-
     clear gray_mash;
+end
+
+for s = 1:nPath
     if strcmp(Config.mriSegmented.method{s}, 'mrtim')
-        mriSegmented{s} = mriBackup; clear mriBackup
+        mriSegmented{s} = mriBackup{s};
     end
 end
+clear mriBackup
 
 %% Leadfield
 for s = 1:nPath

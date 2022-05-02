@@ -69,8 +69,18 @@ for s = 1:nSubjects
     
     %% Check if sourcemodels match
     sourcemodels = cell(1, nSegmentations);
+    loadError = false;
     for m = 1:nSegmentations
-        sourcemodels{m} = load(Path.(subjects(s).name).sourcemodel.(segmentations{m}), 'sourcemodel');
+        try
+            sourcemodels{m} = load(Path.(subjects(s).name).sourcemodel.(segmentations{m}), 'sourcemodel');
+        catch
+            warning("Could not load sourcemodels to check if they match.")
+            loadError = true;
+            break
+        end
+    end
+    if loadError
+        continue
     end
     for p = 1:nPairs
         sourcemodelA = sourcemodels{pairs(p,1)}.sourcemodel;
