@@ -34,10 +34,13 @@ Path.toolbox.mrtim = mrtimPath;
 % Data:
 Path.data.nudz = nudzDataRoot;
 if exist('sciDataRoot', 'var')
-    Path.data.sci = sciDataRoot;
+    Path.data.sci.root = sciDataRoot;
 else
-    Path.data.sci = [Path.source.root '\data\SCI'];
+    Path.data.sci.root = [Path.source.root '\data\SCI'];
 end
+Path.data.sci.segmentation = [Path.data.sci.root '\Segmentation\HeadSegmentation.nrrd'];
+Path.data.sci.prepro = [Path.data.sci.root '\T1\T1_Corrected.nrrd'];
+
 Path.data.elec.HydroCel = [Path.source.model.root '\data\elec_template\GSN-HydroCel-257.sfp'];
 
 %% Clear

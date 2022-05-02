@@ -52,8 +52,9 @@ mriSegmented = ensure_tissue_and_masks(cfg, mriSegmented);
 save([Config.outputPath '\mri_segmented'], 'mriSegmented');
 
 %% visualize
+const_color; % init 'Color' struct
 cfg = struct;
-cfg.colormap = lines(Config.nLayers + 1); % distinct color per tissue
+cfg.colormap = Color.map.(['fieldtrip' num2str(Config.nLayers)]); % distinct color per tissue
 cfg.name = 'MRI segmented';
 cfg.save = [Config.imgPath '\mri_segmented'];
 cfg.visualize = Config.visualize;

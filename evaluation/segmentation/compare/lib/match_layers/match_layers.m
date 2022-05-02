@@ -9,23 +9,17 @@ check_required_field(Config.seg1, 'method');
 check_required_field(Config.seg1, 'nLayers');
 
 check_required_field(Config, 'seg2');
-SCI = false;
-if isstring(Config.seg2) && Config.seg2 == "SCI"
-    SCI = true;
-else
-    check_required_field(Config.seg2, 'method');
-    check_required_field(Config.seg2, 'nLayers');
-    if strcmp(Config.seg1.method, Config.seg2.method) && Config.seg1.nLayers == Config.seg2.nLayers
-        return
-    end
+check_required_field(Config.seg2, 'method');
+check_required_field(Config.seg2, 'nLayers');
+
+if strcmp(Config.seg1.method, Config.seg2.method) && Config.seg1.nLayers == Config.seg2.nLayers
+    return
 end
 
 %% Call Matching Function
-if SCI
+if strcmp(Config.seg2.method, 'SCI')
     [seg1, seg2, label] = match_layers_SCI(Config.seg1, segmentation1, segmentation2);
-elseif Config.seg2.method == "SCI"
-    [seg1, seg2, label] = match_layers_SCI(Config.seg1, segmentation1, segmentation2);
-elseif Config.seg1.method == "SCI"
+elseif strcmp(Config.seg1.method, 'SCI')
     tmp = segmentation1;
     segmentation1 = segmentation2;
     segmentation2 = tmp;
@@ -38,11 +32,6 @@ else
 end
 
 %% Replace tissue fields
-if SCI
-    Config.seg2 = struct;
-    Config.seg2.method = 'SCI';
-end
-
 segmentation1.tissue = seg1;
 segmentation2.tissue = seg2;
 segmentation1.tissuelabel = label;

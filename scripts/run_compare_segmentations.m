@@ -12,8 +12,6 @@ Path.mri = [Path.data '\SCI\T1\patient\IM-0001-0001.dcm'];
 Path.mriNII = [Path.data '\SCI\T1\patient.nii'];
 
 % Toolboxes:
-Path.fieldtrip = [matlabroot '\toolbox\fieldtrip'];
-Path.spm = [matlabroot '\toolbox\spm12'];
 Path.mrtim = [matlabroot '\toolbox\spm12\toolbox\MRTIM'];
 
 % Output:
@@ -28,7 +26,6 @@ Path.result = [Path.segmentation '\evaluation'];
 %% Segment MRI by FieldTrip
 % See 'run_segmentation_fieldtrip.m'
 cfgFT = struct;
-cfgFT.path.fieldtrip = Path.fieldtrip;
 cfgFT.nLayers = 5;
 cfgFT.output = [Path.segmentationFT num2str(cfgFT.nLayers)]; % output path as string
 cfgFT.mri = Path.mri;
@@ -44,9 +41,7 @@ mriSegmented = segmentation_fieldtrip(cfgFT);
 %% Segment MRI by MR-TIM
 % See 'run_segmentation_mrtim.m'
 cfgMRTIM = struct;
-cfgMRTIM.path.spm = Path.spm;
 cfgMRTIM.path.mrtim = Path.mrtim;
-cfgMRTIM.path.fieldtrip = Path.fieldtrip;
 cfgMRTIM.nLayers = 12;
 cfgMRTIM.output = [Path.segmentationMRTIM num2str(cfgMRTIM.nLayers)]; % output path as string
 cfgMRTIM.mri = Path.mriNII;
@@ -71,17 +66,7 @@ cfgGT.seg.nLayers = Info.(method).nLayers;
 if cfgGT.seg.method == "mrtim"
     cfgGT.omit = {'sinus'};
 end
-% TODO better
-if cfgGT.seg.nLayers == 3
-    cfgGT.seg.colormap = lines(4);
-elseif cfgGT.seg.nLayers == 5
-    cfgGT.seg.colormap = lines(6);
-elseif cfgGT.seg.nLayers == 12
-    cfgGT.seg.colormap = [prism(3); lines(7); parula(2)]; % TODO
-end
 
-cfgGT.path.fieldtrip = Path.fieldtrip;
-segName = [char(cfgGT.seg.method) sprintf('%d',cfgGT.seg.nLayers)];
 cfgGT.output = char(Path.result); % output path as string
 cfgGT.visualize = true;
 %%
@@ -101,20 +86,6 @@ cfgRel.seg2.method = Info.mrtim.method;
 cfgRel.seg2.nLayers = Info.mrtim.nLayers;
 
 %%
-seg = {'seg1', 'seg2'};
-for i = 1:2
-    % TODO better
-    if cfgRel.(seg{i}).nLayers == 3
-        cfgRel.(seg{i}).colormap = lines(4);
-    elseif cfgRel.(seg{i}).nLayers == 5
-        cfgRel.(seg{i}).colormap = lines(6);
-    elseif cfgRel.(seg{i}).nLayers == 12
-        cfgRel.(seg{i}).colormap = [prism(3); lines(7); parula(2)]; % TODO
-    end
-end
-
-%%
-cfgRel.path.fieldtrip = Path.fieldtrip;
 cfgRel.output = Path.result; % output path as string
 cfgRel.visualize = true;
 %%

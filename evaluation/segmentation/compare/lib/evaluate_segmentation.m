@@ -1,4 +1,4 @@
-function [Result, MaskResult] = evaluate_segmentation(segmentation, groundTruth)
+function [Result, MaskResult] = evaluate_segmentation(groundTruth, segmentation)
 %% Check Input
 check_required_field(segmentation, 'tissue');
 check_required_field(groundTruth, 'tissue');
