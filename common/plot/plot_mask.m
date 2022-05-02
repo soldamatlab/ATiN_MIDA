@@ -29,6 +29,7 @@ ft_sourceplot(cfg, mask);
 if isfield(Config, 'name')
     set(fig, 'Name', [Config.name ' mask'])
 end
+caxis([0 1])
 
 %% Save
 if isfield(Config, 'save')

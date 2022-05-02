@@ -46,6 +46,11 @@ else
 end
 if isfield(Config, 'colormap')
     cfg.colormap = Config.colormap;
+else
+    colormap = get_colormap(Config);
+    if ~isempty(colormap)
+        cfg.colormap = colormap;
+    end
 end
 if save
     cfg.save = Config.save;

@@ -5,12 +5,15 @@ function [segmentation] = interpolate_tissue(Config, segmentation, target)
 %   Config.nLayers
 
 segmentation = remove_tissue_masks(Config, segmentation);
-
+if isfield(segmentation, 'tissuelabel')
+    segmentation = rmfield(segmentation, 'tissuelabel');
+end
+%%
 cfg = struct;
 cfg.parameter = 'tissue';
 cfg.downsample = 1; % defualt
 cfg.interpmethod = 'nearest';
 segmentation = ft_sourceinterpolate(cfg, segmentation, target);
-
+%%
 segmentation = add_tissue_masks(Config, segmentation);
 end

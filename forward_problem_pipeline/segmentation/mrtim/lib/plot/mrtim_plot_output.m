@@ -57,8 +57,9 @@ end
 segmentationIndexed = ft_datatype_segmentation(mriSegmented, 'segmentationstyle', 'indexed');
 
 %% Plot segmented tissues
+const_color; % init 'Color' struct
 cfg = [];
-cfg.colormap = [lines(6); prism(6); cool(1)];
+cfg.colormap = Color.map.mrtim12;
 cfg.location = 'center';
 cfg.visualize = visualize;
 

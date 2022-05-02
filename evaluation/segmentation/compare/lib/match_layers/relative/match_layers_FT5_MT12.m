@@ -8,7 +8,7 @@ tissueMT = zeros(size(segmentationFT.tissue));
 label = {'gray' 'white' 'csf' 'other' 'background'};
 
 % gray
-tissueFT(segmentationFT.(FIELDTRIP_5_LABEL{1})) = 1; % gray
+%tissueFT(segmentationFT.(FIELDTRIP_5_LABEL{1})) = 1; % gray
 tissueMT(segmentationMT.(MRTIM_12_LABEL{1})) = 1; % bgm
 tissueMT(segmentationMT.(MRTIM_12_LABEL{2})) = 1; % cgm
 

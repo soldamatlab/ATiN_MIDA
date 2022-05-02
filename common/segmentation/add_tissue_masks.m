@@ -1,8 +1,4 @@
 function [segmentation] = add_tissue_masks(Config, segmentation)
-%% Import
-wd = fileparts(mfilename('fullpath'));
-addpath([wd '/../']);
-
 %% Config
 if isfield(Config, 'label')
     label = Config.label;
@@ -21,5 +17,6 @@ end
 for i = 1 : numel(label)
     segmentation.(label{i}) = segmentation.tissue == i;
 end
+segmentation.tissuelabel = label;
 end
 

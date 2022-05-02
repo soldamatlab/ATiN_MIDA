@@ -2,8 +2,6 @@ function [Result, MaskResult] = compare_segmentations(Config)
 % COMPARE_SEGMENTATIONS aligns 'seg2' to 'seg1' and compares them.
 %
 % Required:
-%   Config.path.fieldtrip
-%
 %   Config.seg1             = struct, see below
 %   Config.seg2             = struct, see below
 %   Config.segX.prepro
@@ -26,34 +24,19 @@ function [Result, MaskResult] = compare_segmentations(Config)
 %                             Does nothing if no segmentation is SCI.
 %
 %   Config.segX.colormap
+%   Config.segX.suffix
 %   Config.colormap
 
 %% Import
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath([wd '\..\..\..\common']));
-addpath(genpath(wd));
+addpath_source;
 
 %% Config
-check_required_field(Config, 'path');
-check_required_field(Config.path, 'fieldtrip');
-addpath(Config.path.fieldtrip);
-ft_defaults
-
-check_required_field(Config, 'seg1');
-check_required_field(Config.seg1, 'prepro');
-check_required_field(Config.seg1, 'segmentation');
-check_required_field(Config.seg1, 'method');
-check_required_field(Config.seg1, 'nLayers');
-
-check_required_field(Config, 'seg2');
-check_required_field(Config.seg2, 'prepro');
-check_required_field(Config.seg2, 'segmentation');
-check_required_field(Config.seg2, 'method');
-check_required_field(Config.seg2, 'nLayers');
+[Config, suffix1] = check_seg_config(Config, 'seg1');
+[Config, suffix2] = check_seg_config(Config, 'seg2');
 
 check_required_field(Config, 'output');
-seg1name = [Config.seg1.method sprintf('%d',Config.seg1.nLayers)];
-seg2name = [Config.seg2.method sprintf('%d',Config.seg2.nLayers)];
+seg1name = [Config.seg1.method num2str(Config.seg1.nLayers) suffix1];
+seg2name = [Config.seg2.method num2str(Config.seg2.nLayers) suffix2];
 outPath = [char(Config.output) '\' char(seg1name) '_' char(seg2name)];
 [outPath, imgPath] = create_output_folder(outPath);
 
@@ -126,6 +109,7 @@ cfg.nLayers1 = Config.seg1.nLayers;
 cfg.method2 = Config.seg2.method;
 cfg.nLayers2 = Config.seg2.nLayers;
 cfg.label = segmentation1.tissuelabel;
+cfg.visualize = visualize;
 if isfield(Config, 'omit')
     cfg.omit = Config.omit;
 end

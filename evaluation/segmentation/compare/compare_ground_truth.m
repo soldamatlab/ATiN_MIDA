@@ -4,8 +4,6 @@ function [Result, MaskResult] = compare_ground_truth(Config)
 % ground truth.
 % 
 % Required:
-%   Config.path.fieldtrip
-%
 %   Config.seg - struct, see below
 %   Config.seg.prepro
 %   Config.seg.segmentation
@@ -17,23 +15,17 @@ function [Result, MaskResult] = compare_ground_truth(Config)
 % Optional:
 %   Config.visualize
 %   Config.save
+%   Config.seg.suffix
 %   Config.seg.colormap (same effect as Config.colormap)
 %   Config.noFlip       = logical, if set to true, segmentation won't be
 %                         flipped to match SCI ground truth (useful when
 %                         it's already flipped)
 
 %% Import
-wd = fileparts(mfilename('fullpath'));
-addpath(genpath([wd '\..\..\..\common']));
-addpath(genpath(wd));
+addpath_source;
 
 %% Config
-check_required_field(Config, 'path');
-check_required_field(Config.path, 'fieldtrip');
-addpath(Config.path.fieldtrip);
-ft_defaults
-
-% Rest will be checked by 'compare_segmentations.m'
+% will be checked by 'compare_segmentations.m'
 
 %% Load Ground Truth
 cfg = struct;
@@ -50,7 +42,6 @@ cfg.seg1.prepro = groundTruthPrepro;
 cfg.seg1.segmentation = groundTruth;
 cfg.seg1.method = 'SCI';
 cfg.seg1.nLayers = 8;
-cfg.seg1.colormap = [white(1); lines(7); spring(1)]; % TODO better colors
 
 [Result, MaskResult] = compare_segmentations(cfg);
 end
