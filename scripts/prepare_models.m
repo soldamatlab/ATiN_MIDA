@@ -20,16 +20,7 @@ methods = convertStringsToChars(methods);
 suffixes = convertStringsToChars(suffixes);
 segFileName = convertStringsToChars(segFileName);
 sourcemodelFileName = convertStringsToChars(sourcemodelFileName);
-
-nSegmentations = length(methods);
-segmentations = cell(1, nSegmentations);
-for m = 1:nSegmentations
-    suffix = '';
-    if ~isempty(suffixes{m})
-        suffix = ['_' suffixes{m}];
-    end
-    segmentations{m} = [methods{m} num2str(layers(m)) suffix];
-end
+[segmentations, nSegmentations] = get_segmentation_names(methods, layers, suffixes);
 
 subjects = dir([Path.output.nudz '\*_*_*']);
 nSubjects = length(subjects);
