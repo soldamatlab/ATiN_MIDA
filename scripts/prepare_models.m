@@ -32,10 +32,10 @@ segFileName = convertStringsToChars(segFileName);
 sourcemodelFileName = convertStringsToChars(sourcemodelFileName);
 [segmentations, nSegmentations] = get_segmentation_names(methods, layers, suffixes);
 
-if strcmp(dataset, 'nudz')
-    subjects = dir([Path.output.nudz '\*_*_*']);
-elseif strcmp(dataset, 'bino')
-    subjects = dir([Path.output.nudz '\S*']);
+if strcmp(dataset, 'NUDZ')
+    subjects = dir([Path.output.NUDZ '\*_*_*']);
+elseif strcmp(dataset, 'BINO')
+    subjects = dir([Path.output.BINO '\S*']);
 else
     error("Unknown dataset")
 end
