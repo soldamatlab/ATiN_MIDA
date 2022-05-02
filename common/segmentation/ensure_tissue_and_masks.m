@@ -1,8 +1,4 @@
 function [segmentation] = ensure_tissue_and_masks(Config, segmentation)
-%% Import
-wd = fileparts(mfilename('fullpath'));
-addpath([wd '/../']);
-
 %% Config
 Config = check_tissue_function_config(Config);
 

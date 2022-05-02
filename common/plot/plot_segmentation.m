@@ -1,8 +1,11 @@
-function [fig] = plot_segmentation(Config, mriSegmented, anatomy)
+function [fig] = plot_segmentation(Config, segmentation, anatomy)
 % PLOT_SEGMENTATION
 % Options:
-% Config.location
 % Config.colormap
+%  or
+% Config.method & Config.nLayres - to set colormap from const_color.m
+%
+% Config.location
 % Config.visualize
 % Config.name
 % Config.save - string or array of strings (for multiple saves)
@@ -23,12 +26,11 @@ if isfield(Config, 'location')
 end
 if isfield(Config, 'colormap')
     cfg.funcolormap = Config.colormap;
+elseif isfield(Config, 'method') && isfield(Config, 'nLayers')
+    cfg.funcolormap = get_colrmap(Config);
 else
-    warning("Add 'Config.funcolormap' parameter. Using default color map - some layers may have the same color.")
+    warning("Add 'Config.colormap' parameter. Using default color map - some layers may have the same color.")
 end
-
-%% Prepare Segmentation
-segmentation = prepare_segmentation(mriSegmented);
 
 %% Plot
 fig = figure;
