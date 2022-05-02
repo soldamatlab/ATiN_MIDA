@@ -3,14 +3,24 @@ close all
 clear variables
 addpath_source;
 
-%% Paths & Names - Set manually
-Path.output.root = 'S:\BP_MIDA\analysis';
-Path.output.nudz = [Path.output.root '\NUDZ'];
+%% Paths & Config - Set manually
+% Local paths:
+%Path.output.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis'; % NTB
+Path.output.root = 'S:\BP_MIDA\analysis'; % PC-MATOUS
+%Path.output.root = 'S:\matous\analysis'; % PC-SIMON
+Path.output.NUDZ = [Path.output.root '\NUDZ'];
+Path.output.BINO = [Path.output.root '\BINO'];
 
+% dataset:
+dataset = 'NUDZ';
+%dataset = 'BINO';
+
+% Segmentations:
 methods =  {'fieldtrip',                 'mrtim'};
 layers =   [ 5,                           12    ];
 suffixes = {'anatomy_prepro',            ''     };
 
+% Filenames:
 segFileName = 'mri_segmented.mat';
 sourcemodelFileName = 'sourcemodel.mat';
 sourcemodelVarName = 'sourcemodel';
@@ -22,7 +32,13 @@ segFileName = convertStringsToChars(segFileName);
 sourcemodelFileName = convertStringsToChars(sourcemodelFileName);
 [segmentations, nSegmentations] = get_segmentation_names(methods, layers, suffixes);
 
-subjects = dir([Path.output.nudz '\*_*_*']);
+if strcmp(dataset, 'nudz')
+    subjects = dir([Path.output.nudz '\*_*_*']);
+elseif strcmp(dataset, 'bino')
+    subjects = dir([Path.output.nudz '\S*']);
+else
+    error("Unknown dataset")
+end
 nSubjects = length(subjects);
 for s = 1:nSubjects
     for m = 1:nSegmentations
@@ -36,7 +52,7 @@ end
 %% Prepare models
 cfgPipeline = struct;
 cfgPipeline.resultsPath = Path.output.root;
-cfgPipeline.dataName = 'NUDZ';
+cfgPipeline.dataName = dataset;
 cfgPipeline.visualize = false;
 cfgPipeline.dialog = false;
 
