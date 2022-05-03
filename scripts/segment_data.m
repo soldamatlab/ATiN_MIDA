@@ -44,6 +44,7 @@ cfgPipeline.dialog = false;
 
 nFiles = length(subjects);
 for f = 1:nFiles
+    fprintf("SEGMENTING SUBJECT '%s'\n", subjects(f).name)
     %% Find data
     if strcmp(dataset, 'nudz')
         mriDir = find_in_dir(subjects(f), 'HEAD_VP03_GTEN_*', cfgFindDir);

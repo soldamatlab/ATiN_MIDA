@@ -66,6 +66,7 @@ sourcemodelCheck = NaN(nSubjects, 1);
 pairs = nchoosek(1:nSegmentations, 2);
 nPairs = size(pairs, 1);
 for s = 1:nSubjects
+    fprintf("MODELING SUBJECT '%s'\n", subjects(s).name)
     cfgPipeline.subjectName = subjects(s).name;
     modelFT.mriSegmented.path = cell(1, nSegmentations);
     for m = 1:nSegmentations

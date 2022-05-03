@@ -12,8 +12,10 @@ elseif ~mkdir(outputPath)
 end
 
 imgPath = [outputPath '\img'];
-if ~mkdir(imgPath)
-    error("Could not create image output folder!")
+if ~exist(imgPath, 'dir')
+    if ~mkdir(imgPath)
+        error("Could not create image output folder!")
+    end
 end
 end
 

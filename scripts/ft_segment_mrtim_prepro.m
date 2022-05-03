@@ -20,6 +20,7 @@ cfgFT.suffix = 'anatomy_prepro';
 %% Segment
 nFiles = length(subjects);
 for f = 1:nFiles
+    fprintf("SEGMENTING SUBJECT '%s'\n", subjects(s).name)
     subjectPath = [subjects(f).folder '\' subjects(f).name];
     cfgFT.mriPrepro = [subjectPath subpathMrtim '\anatomy_prepro.nii'];
     cfgPipeline.segmentation.fieldtrip = cfgFT;
