@@ -48,6 +48,7 @@ METHOD = {ELORETA};
 
 AXES = {'x', 'y', 'z'};
 DIPOLE_DOWNSAMPLE = 1; % 1 for no downsample, 'x' for every 'x'th dipole
+ELORETA_SUPPORTED_SNR = [5 10 15 25]; % each SNR needs a lambda
 ELORETA_LAMBDAS = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
 
 SNR = 10; % Signal to Noise Ratio
@@ -59,22 +60,9 @@ NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 VERBOSE = true;
 WAITBAR = true;
 
-%% Config - Method
-if isfield(Config, 'method')
-    Config.method = string(Config.method);
-    if ~iscell(Config.method)
-        Config.method = num2cell(Config.method);
-    end
-else
-    Config.method = METHOD;
-end
-
-if ~isfield(Config, 'dipoleDownsample')
-    Config.dipoleDownsample = DIPOLE_DOWNSAMPLE;
-end
-if ~isfield(Config, 'eloreta') || ~isfield(Config.eloreta, 'lambdas')
-    Config.eloreta.lambdas = ELORETA_LAMBDAS;
-end
+%% Config - output
+check_required_field(Config, 'output');
+[output, ~] = create_output_folder(Config.output, false, false);
 
 %% Config - Signal
 if ~isfield(Config, 'signal')
@@ -102,6 +90,31 @@ else
     end
     if ~isfield(Config.signal, 'noisePower')
         Config.signal.noisePower = NOISE_POWER;
+    end
+end
+
+%% Config - Method
+if isfield(Config, 'method')
+    Config.method = string(Config.method);
+    if ~iscell(Config.method)
+        Config.method = num2cell(Config.method);
+    end
+else
+    Config.method = METHOD;
+end
+
+if ~isfield(Config, 'dipoleDownsample')
+    Config.dipoleDownsample = DIPOLE_DOWNSAMPLE;
+end
+if ismember(ELORETA, Config.method)
+    if ~isfield(Config, 'eloreta') || ~isfield(Config.eloreta, 'lambdas')
+        for s = 1:length(Config.signal.snr)
+            if ~ismember(Config.signal.snr(s), ELORETA_SUPPORTED_SNR)
+                error("Default eLORETA lambdas are only defined for SNR = [5, 10, 15, 25]. Choose one of default SNRs or define eLORETA lambdas for each used SNR (in the same order) in 'Config.eloreta.lambdas'.")
+            else
+                Config.eloreta.lambdas(s) = ELORETA_LAMBDAS{Config.signal.snr(s) == SNR};
+            end
+        end
     end
 end
 
@@ -143,8 +156,6 @@ else
         sourcemodel.leadfield = Config.leafield;
     end
     check_required_field(sourcemodel, 'leadfield');
-    
-    check_required_field(Config, 'output');
 end
 
 %% Init FieldTrip
@@ -163,7 +174,6 @@ fs = Config.signal.fs;
 noisePower = Config.signal.noisePower;
 verbose = Config.verbose;
 showBar = Config.waitbar;
-output = Config.output;
 
 dipoleIndexes = 1:dipoleDownsample:length(sourcemodel.inside);
 dipoleIndexes = dipoleIndexes(sourcemodel.inside(dipoleIndexes));
@@ -221,7 +231,7 @@ for s = 1:nSNR
         end
         
         %% FieldTrip structure
-        dataStruct          = [];
+        dataStruct          = struct;
         dataStruct.label    = elec.label;
         dataStruct.fsample  = fs;
         for a = 1:nAXES
@@ -230,6 +240,7 @@ for s = 1:nSNR
         end
         % TODO ? separate data to shorter sections with 'ft_redefinetrial'
         
+        %% Source Analysis - Prepro
         %% Preprocess
         data = struct;
         cfg = struct;
@@ -246,7 +257,7 @@ for s = 1:nSNR
         cfg.covariance       = 'yes';
         cfg.covariancewindow = 'all';
         cfg.keeptrials       = 'no';
-        cfg.vartrllength     = 2; % TODO 'vartrllength' not in doc
+        cfg.vartrllength     = 2;
         timelock = struct;
         lcmvLambdas = NaN(1, nAXES);
         for a = 1:nAXES
@@ -254,7 +265,7 @@ for s = 1:nSNR
             lcmvLambdas(a) = 0.003*max(eig(timelock.(AXES{a}).cov)); % TODO study
         end
         
-        %% Source Analysis
+        %% Source Analysis - Solve
         source = struct;
         %% LCMV (Linear Constrained Minimal Variance)
         if ismember(LCMV, method)

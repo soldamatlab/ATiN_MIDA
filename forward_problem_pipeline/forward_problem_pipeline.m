@@ -1,7 +1,7 @@
 function [] = forward_problem_pipeline(Config)
 %FORWARD_PROBLEM_PIPELINE TODO Summary of this function
 %
-%   Required:
+% Required:
 %   Config.output - Output path as string. This option takes priority if both are present.
 %    or
 %   Config.resultsPath
@@ -9,7 +9,7 @@ function [] = forward_problem_pipeline(Config)
 %   Config.subjectName
 %   Config.runName
 %
-%   Optional:
+% Optional:
 %   TODO
 %
 %   Config.miscellaneous.visualize

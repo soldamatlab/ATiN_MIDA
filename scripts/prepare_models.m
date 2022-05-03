@@ -7,6 +7,7 @@ addpath_source;
 % Local paths:
 %Path.output.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis'; % NTB
 Path.output.root = 'S:\BP_MIDA\analysis'; % PC-MATOUS
+%Path.output.root = '\\Pc-matous\bp_mida\analysis'; % PC-MATOUS remote
 %Path.output.root = 'S:\matous\analysis'; % PC-SIMON
 Path.output.NUDZ = [Path.output.root '\NUDZ'];
 Path.output.BINO = [Path.output.root '\BINO'];
