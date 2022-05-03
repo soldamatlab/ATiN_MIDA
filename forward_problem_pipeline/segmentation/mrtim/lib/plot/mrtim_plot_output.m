@@ -43,19 +43,6 @@ else
     mri = ft_read_mri([outputPath '\anatomy_prepro.nii']);
 end
 
-%% Load segmented MRI
-if isfield(Config, 'maskedMri')
-    mriSegmented = Config.maskedMri;
-else
-    % Import 'mrtim_add_segmentation_masks'
-    wd = fileparts(mfilename('fullpath')); % Only works in a script!
-    addpath([wd '\..']);
-    
-    mriSegmented = ft_read_mri([outputPath '\anatomy_prepro_segment.nii']);
-    mriSegmented = mrtim_add_segmentation_masks(mriSegmented, 12); % TODO implement 6 layers
-end
-segmentationIndexed = ft_datatype_segmentation(mriSegmented, 'segmentationstyle', 'indexed');
-
 %% Plot segmented tissues
 const_color; % init 'Color' struct
 cfg = [];
@@ -64,10 +51,10 @@ cfg.location = 'center';
 cfg.visualize = visualize;
 
 cfg.save = [imgPath '\mri_segmented'];
-plot_segmentation(cfg, segmentationIndexed);
+plot_segmentation(cfg, Config.maskedMri);
 
 cfg.save = [imgPath '\mri_segmented_anatomy'];
-plot_segmentation(cfg, segmentationIndexed, mri);
+plot_segmentation(cfg, Config.maskedMri, mri);
 
 %% Load and plot tissue masks
 const_conductivity;
