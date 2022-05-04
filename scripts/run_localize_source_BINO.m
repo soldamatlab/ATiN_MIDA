@@ -16,6 +16,8 @@ headmodel = load_var_from_mat('headmodel', [modelPath '\headmodel.mat']);
 
 %% Config
 cfg = struct;
+cfg.output = '';
+
 cfg.sourcemodel = sourcemodel;
 cfg.headmodel = headmodel;
 

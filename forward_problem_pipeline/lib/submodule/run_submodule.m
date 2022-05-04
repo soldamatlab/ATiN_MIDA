@@ -2,6 +2,7 @@ function [finished] = run_submodule(submodule, input, name)
 if  ~exist('name', 'var')
     name = inputname(1);
 end
+fprintf("Running: %s\n", name);
 
 try
     submodule(input);

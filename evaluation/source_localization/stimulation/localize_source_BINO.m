@@ -8,6 +8,7 @@ function [sourceHouses, sourceFaces] = localize_source_BINO(Config, data, events
 %   Config                = struct
 %   Config.sourcemodel    = struct, has to include field 'leadfield'
 %   Config.headmodel
+%   Config.output
 %
 %   data                  = struct
 %   data.trial
@@ -23,7 +24,7 @@ function [sourceHouses, sourceFaces] = localize_source_BINO(Config, data, events
 
 %% Constants
 ELORETA = 'eloreta';
-ELORETA_LAMBDA = 0.257843673057386; % ! TODO
+ELORETA_LAMBDA = 0.05;
 T_EVENT = 5; % [s]
 
 %% Check Config

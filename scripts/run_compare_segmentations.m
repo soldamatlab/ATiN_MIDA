@@ -79,13 +79,11 @@ cfgRel.seg1.prepro = Info.fieldtrip.mriPrepro;
 cfgRel.seg1.method = Info.fieldtrip.method;
 cfgRel.seg1.nLayers = Info.fieldtrip.nLayers;
 
-%%
 cfgRel.seg2.segmentation = Info.mrtim.mriSegmented;
 cfgRel.seg2.prepro = Info.mrtim.mriPrepro;
 cfgRel.seg2.method = Info.mrtim.method;
 cfgRel.seg2.nLayers = Info.mrtim.nLayers;
 
-%%
 cfgRel.output = Path.result; % output path as string
 cfgRel.visualize = true;
 %%

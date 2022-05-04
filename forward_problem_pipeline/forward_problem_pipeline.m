@@ -43,9 +43,8 @@ if isfield(Config, 'segmentation')
     
     %% FieldTrip
     if isfield(Config.segmentation, 'fieldtrip')
-        disp("SEGMENTATION: FieldTrip")
         Info.segmentation.fieldtrip.finished = ...
-        run_submodule(@segmentation_fieldtrip, Config.segmentation.fieldtrip, "FieldTrip segmentation");
+        run_submodule(@segmentation_fieldtrip, Config.segmentation.fieldtrip, "SEGMENTAITON FieldTrip");
         if Info.segmentation.fieldtrip.finished
             Segmentation.fieldtrip = segmentation2config('fieldtrip', Config.segmentation.fieldtrip.output);
         end
@@ -53,9 +52,8 @@ if isfield(Config, 'segmentation')
 
     %% MR-TIM
     if isfield(Config.segmentation, 'mrtim')
-        disp("SEGMENTATION: MR-TIM")
         Info.segmentation.mrtim.finished = ...
-        run_submodule(@segmentation_mrtim, Config.segmentation.mrtim, "MR-TIM segmentation");
+        run_submodule(@segmentation_mrtim, Config.segmentation.mrtim, "SEGMENTATION MR-TIM");
         if Info.segmentation.mrtim.finished
             Segmentation.mrtim = segmentation2config('mrtim', Config.segmentation.mrtim.output);
         end
@@ -70,11 +68,11 @@ if isfield(Config, 'model')
         SegQueue = get_seg_queue(Config.model.fieldtrip.mriSegmented, Segmentation);
         queueFields = fieldnames(SegQueue);
         for f = 1:numel(queueFields)
-            fprintf("CONDUCTIVITY MODELING: Fieldtrip with segmented MRI from %s\n", queueFields{f})
             cfgModelFieldtrip.mriSegmented = SegQueue.(queueFields{f});
             cfgModelFieldtrip.path.output = [Config.model.fieldtrip.output '\' queueFields{f} '_segmentation'];
+            submoduleName = sprintf("CONDUCTIVITY MODELING Fieldtrip with segmentationx`     from %s\n", queueFields{f});
             Info.model.fieldtrip.(queueFields{f}).finished = ...
-            run_submodule(@model_fieldtrip, cfgModelFieldtrip, "FieldTrip conductivity modeling");
+            run_submodule(@model_fieldtrip, cfgModelFieldtrip, submoduleName);
         end
     end
 end

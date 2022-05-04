@@ -4,9 +4,16 @@ clear variables
 addpath_source;
 
 %% Paths & Names - Set manually
-%Path.output.root = 'S:\BP_MIDA\analysis';
-Path.output.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis';
-Path.output.nudz = [Path.output.root '\NUDZ'];
+%Path.output.root = 'S:\BP_MIDA\analysis'; % PC-MATOUS
+Path.output.root = '\\Pc-matous\bp_mida\analysis'; % PC-MATOUS remote
+%Path.output.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\analysis'; % NTB
+%Path.output.root = 'S:\matous\analysis'; % PC-SIMON
+Path.output.NUDZ = [Path.output.root '\NUDZ'];
+Path.output.BINO = [Path.output.root '\BINO'];
+
+% dataset:
+dataset = 'NUDZ';
+%dataset = 'BINO';
 
 methods =  {'fieldtrip',      'fieldtrip',      'mrtim'};
 layers =   [ 3,                5,                12    ];
@@ -28,7 +35,13 @@ preproFileName.mrtim = convertStringsToChars(preproFileName.mrtim);
 [segmentations, nSegmentations] = get_segmentation_names(methods, layers, suffixes);
 pairs = nchoosek(1:nSegmentations, 2);
 nPairs = size(pairs, 1);
-subjects = dir([Path.output.nudz '\*_*_*']);
+if strcmp(dataset, 'NUDZ')
+    subjects = dir([Path.output.NUDZ '\*_*_*']);
+elseif strcmp(dataset, 'BINO')
+    subjects = dir([Path.output.BINO '\S*']);
+else
+    error("Unknown dataset")
+end
 nSubjects = length(subjects);
 
 finished = NaN(nSubjects, nPairs);
@@ -38,6 +51,16 @@ for s = 1:nSubjects
     Path.(subjects(s).name).segmentation.root = [Path.(subjects(s).name).root '\segmentation'];
     Path.(subjects(s).name).evaluation.root = [Path.(subjects(s).name).root '\evaluation'];
     Path.(subjects(s).name).evaluation.segCompare = [Path.(subjects(s).name).evaluation.root '\compare_segmentations'];
+    for m = 1:nSegmentations
+        Path.(subjects(s).name).segmentation.(segmentations{m}).root = [Path.(subjects(s).name).segmentation.root '\' segmentations{m}];
+        Path.(subjects(s).name).segmentation.(segmentations{m}).seg = [Path.(subjects(s).name).segmentation.(segmentations{m}).root '\' segFileName];
+        if strcmp(methods{m}, 'mrtim')
+            preproName = preproFileName.mrtim;
+        else
+            preproName = preproFileName.default;
+        end
+        Path.(subjects(s).name).segmentation.(segmentations{m}).prepro = [Path.(subjects(s).name).segmentation.(segmentations{m}).root '\' preproName];
+    end
     
     %% Comapre segmentations with each other
     for p = 1:nPairs
@@ -55,13 +78,13 @@ for s = 1:nSubjects
         cfgRel.seg2.segmentation = Path.(subjects(s).name).segmentation.(segmentations{idx2}).seg;
         cfgRel.seg2.prepro = Path.(subjects(s).name).segmentation.(segmentations{idx2}).prepro;
         cfgRel.seg2.method = methods{idx2};
-        cfgRel.seg2.nLayers = nLayers(idx2);
+        cfgRel.seg2.nLayers = layers(idx2);
         cfgRel.seg2.suffix = suffixes{idx2};
         
         cfgRel.output = Path.(subjects(s).name).evaluation.segCompare;
         cfgRel.visualize = false;
         
-        name = sprintf('Compare %s with %s', segmentations(idx1), segmentations(idx2));
+        name = sprintf('Compare %s with %s', segmentations{idx1}, segmentations{idx2});
         finished(s,p) = run_submodule(@compare_segmentations, cfgRel, name);
     end
 end
