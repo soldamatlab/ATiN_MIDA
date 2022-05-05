@@ -23,9 +23,9 @@ dataset = 'NUDZ';
 indElec = false;
 
 % Segmentations:
-methods =  {'fieldtrip',                 'mrtim'};
-layers =   [ 5,                           12    ];
-suffixes = {'anatomy_prepro',            ''     };
+methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
+layers =   [ 3,                5,                           12    ];
+suffixes = {'anatomy_prepro', 'anatomy_prepro',            ''     };
 
 % Filenames:
 segFileName = 'mri_segmented.mat';
