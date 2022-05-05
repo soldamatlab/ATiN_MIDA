@@ -24,8 +24,11 @@ function [sourceHouses, sourceFaces] = localize_source_BINO(Config, data, events
 
 %% Constants
 ELORETA = 'eloreta';
-ELORETA_LAMBDA = 0.05;
+ELORETA_LAMBDA = 0.05; % regulation parameter
+
 T_EVENT = 5; % [s]
+FACES_FREQUENCY = 8.57; % [Hz]
+HOUSES_FREQUENCY = 6.67; % [Hz]
 
 %% Check Config
 check_required_field(Config, 'output');
@@ -67,41 +70,46 @@ else
     data = pick_channel(cfg, data);
 end
 
-%% Find 'HRep' and 'FRep' events
-iHevent = find_events(events, 'type', 'HRep');
-iFevent = find_events(events, 'type', 'FRep');
-iHtime = event_indexes2time_indexes(events, iHevent, data.time{1});
-iFtime = event_indexes2time_indexes(events, iFevent, data.time{1});
-dataHouses = create_event_data(data, iHtime(1), T_EVENT); % TODO ? not just first
-dataFaces = create_event_data(data, iFtime(1), T_EVENT); % TODO
-
-%% Preprocess - re-reference
+%% Preprocess - re-reference, bandpass
 cfg = [];
+cfg.channel = 'all'; % default
+cfg.demean = 'no'; % default
+
 if strcmp(Config.rereference, 'no')
 elseif strcmp(Config.rereference, 'avg')
+    cfg.reref = 'yes';
     cfg.refmethod = 'avg';
+    cfg.refchannel = 'all';
 else
     warning("[Config.rereference] value ('%s') is not a valid re-referencing method. Data won't be re-referenced.", Config.rereference)
 end
-cfg.channel = 'all'; % default
-cfg.reref = 'yes';
-cfg.refmethod = 'avg';
-cfg.refchannel = 'all';
-%cfg.demean = 'yes'; % TODO ?
-dataHouses = ft_preprocessing(cfg, dataHouses);
-dataFaces = ft_preprocessing(cfg, dataFaces);
+
+cfg.bpfilter = 'yes';
+cfg.bpfreq = [HOUSES_FREQUENCY - 0.5, HOUSES_FREQUENCY + 0.5];
+dataHouses = ft_preprocessing(cfg, data);
+cfg.bpfreq = [FACES_FREQUENCY - 0.5, FACES_FREQUENCY + 0.5];
+dataFaces = ft_preprocessing(cfg, data);
+
+%% Find 'HRep' and 'FRep' events
+iHevent = find_events(events, 'type', 'HRep');
+iFevent = find_events(events, 'type', 'FRep');
+iHtime = event_indexes2time_indexes(events, iHevent, dataHouses.time{1});
+iFtime = event_indexes2time_indexes(events, iFevent, dataFaces.time{1});
+dataHouses = create_event_data(dataHouses, iHtime(1), T_EVENT); % TODO ? not just first
+dataFaces = create_event_data(dataFaces, iFtime(1), T_EVENT); % TODO
 
 %% Covariance Matrix
 cfg                  = [];
 cfg.covariance       = 'yes';
 cfg.covariancewindow = 'all';
-cfg.keeptrials       = 'no';
+cfg.keeptrials       = 'yes';
 cfg.vartrllength     = 2;
 timelockHouses = ft_timelockanalysis(cfg, dataHouses);
 timelockFaces = ft_timelockanalysis(cfg, dataFaces);
 
 %% Solve eLORETA
 cfg                    = [];
+cfg.keeptrials         = 'no';
 cfg.method             = 'eloreta';
 cfg.grid               = Config.sourcemodel;
 cfg.headmodel          = Config.headmodel;
@@ -115,14 +123,14 @@ cfg.eloreta.keepfilter = 'no';
 cfg.eloreta.keepmom    = 'no';
 
 sourceHouses = ft_sourceanalysis(cfg, timelockHouses);
-sourceHouses.avg.pow = sourceHouses.avg.pow'; % TODO why transpose
 evaluation.(ELORETA).house.map = sourceHouses.avg.pow;
 
 sourceFaces = ft_sourceanalysis(cfg, timelockFaces);
-sourceFaces.avg.pow = sourceFaces.avg.pow'; % TODO why transpose
 evaluation.(ELORETA).house.map = sourceFaces.avg.pow;
 
 %% Save
-% TODO save / evaluate more 
 save([output '\evaluation'], 'evaluation');
+% TODO plot:
+% ft_sourceplot, pro kazdy subjekt zprumerovany plot a pak pro vsechny
+% subjekty prumer
 end
