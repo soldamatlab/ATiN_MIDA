@@ -17,6 +17,8 @@ function [sourcemodels] = model_fieldtrip(Config)
 % Optional:
 %   Config.mriSegmented.norm2ind = path(s) to '.mat' file(s) with 'norm2ind'        % TODO add support for var
 %                                  var (4x4 double)
+%   Config.elec        = Path to a '.mat' file with a FieldTrip elec struct.
+%                        'Config.elec' is used as elec template.
 %   Config.sourcemodel = struct, has to have fields 'pos' and 'dim',
 %                        ! 'pos' has to be in mm !
 %                      or
@@ -30,6 +32,9 @@ const_path % inits 'Path' struct
 
 %% Load elec template to test the path
 elecTemplatePath = Path.data.elec.HydroCel;
+if ~isfield(Config, 'elec')
+    elecTemplatePath = Config.elec;
+end
 [~] = ft_read_sens(elecTemplatePath);
 
 %% Segmented MRI config
@@ -178,10 +183,10 @@ end
 % 1st, 2nd, 3rd are points for allignment
 % 257th is reference electrode
 
-% TODO ? add: 'senstype', 'eeg'
 Infos = assign_all_struct_cells(Infos, 'electrodes.template.path', elecTemplatePath);
 elecTemplate = ft_read_sens(elecTemplatePath);
 elecTemplate = ft_convert_units(elecTemplate, 'mm');
+% TODO ? add: 'senstype', 'eeg'
 elecTemplates = cell(1, nPath);
 elecTemplates(:) = {elecTemplate};
 clear elecTemplate

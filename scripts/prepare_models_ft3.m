@@ -20,12 +20,11 @@ Path.output.BINO = [Path.output.root '\BINO'];
 % dataset:
 dataset = 'NUDZ';
 %dataset = 'BINO';
-indElec = false;
 
 % Segmentations:
-methods =  {'fieldtrip',                 'mrtim'};
-layers =   [ 5,                           12    ];
-suffixes = {'anatomy_prepro',            ''     };
+methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
+layers =   [ 3,                5,                           12    ];
+suffixes = {'anatomy_prepro', 'anatomy_prepro',            ''     };
 
 % Filenames:
 segFileName = 'mri_segmented.mat';
@@ -53,9 +52,6 @@ for s = 1:nSubjects
             [subjects(s).folder '\' subjects(s).name '\segmentation\' segmentations{m} '\' segFileName];
         Path.(subjects(s).name).sourcemodel.(segmentations{m}) =...
             [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
-        if indElec
-            Path.(subjects(s).name).elec = ; % TODO
-        end
     end
 end
 
@@ -70,48 +66,38 @@ modelFT = struct;
 modelFT.mriSegmented.method = methods;
 modelFT.mriSegmented.nLayers = layers;
 modelFT.suffix = suffixes;
-modelFT.sourcemodel = 'matchpos';
+%modelFT.sourcemodel = 'matchpos';
 
-sourcemodelCheck = NaN(nSubjects, 1);
-pairs = nchoosek(1:nSegmentations, 2);
-nPairs = size(pairs, 1);
+posdimCheck = NaN(nSubjects, 1);
 for s = 1:nSubjects
     fprintf("MODELING SUBJECT '%s'\n", subjects(s).name)
+    mriSegmented = cell(1, nSegmentations);
+    for m = 1:nSegmentations
+        mriSegmented{m} = load_var_from_mat('mriSegmented', Path.(subjects(s).name).segmentation.(segmentations{m}));
+        if strcmp(methods{m}, 'mrtim')
+            mriSegmented{m}.gray = mriSegmented{m}.bgm | mriSegmented{m}.cgm;
+            mriSegmented{m} = rmfield(mriSegmented{m}, 'bgm');
+            mriSegmented{m} = rmfield(mriSegmented{m}, 'cgm');
+        end
+    end
+    [pos, dim] = prepare_sourcepos(mriSegmented);
+    
+    sourcemodel = load_var_from_mat('sourcemodel', Path.(subjects(s).name).sourcemodel.(segmentations{3}));
+    if ~(isequal(pos, sourcemodel.pos) && isequal(dim, sourcemodel.dim))
+        posdimCheck(s) = -1;
+        continue;
+    else
+        posdimCheck(s) = 0;
+    end
+    
+    modelFT.sourcemodel = struct;
+    modelFT.sourcemodel.pos = sourcemodel.pos;
+    modelFT.sourcemodel.dim = sourcemodel.dim;
     cfgPipeline.subjectName = subjects(s).name;
     modelFT.mriSegmented.path = cell(1, nSegmentations);
     for m = 1:nSegmentations
         modelFT.mriSegmented.path{m} = Path.(subjects(s).name).segmentation.(segmentations{m});
     end
-    if indElec
-        modelFT.elec = ; % TODO
-    end
     cfgPipeline.model.fieldtrip = modelFT;
     forward_problem_pipeline(cfgPipeline);
-    
-    %% Check if sourcemodels match
-    sourcemodels = cell(1, nSegmentations);
-    loadError = false;
-    for m = 1:nSegmentations
-        try
-            sourcemodels{m} = load(Path.(subjects(s).name).sourcemodel.(segmentations{m}), 'sourcemodel');
-        catch
-            warning("Could not load sourcemodels to check if they match.")
-            sourcemodelCheck(s) = 1;
-            loadError = true;
-            break
-        end
-    end
-    if loadError
-        continue
-    end
-    for p = 1:nPairs
-        sourcemodelA = sourcemodels{pairs(p,1)}.sourcemodel;
-        sourcemodelB = sourcemodels{pairs(p,2)}.sourcemodel;
-        if ~isequal(sourcemodelA.pos, sourcemodelB.pos)...
-                || ~isequal(sourcemodelA.dim, sourcemodelB.dim)
-            sourcemodelCheck(s) = 2;
-        else
-            sourcemodelCheck(s) = 0;
-        end
-    end
 end
