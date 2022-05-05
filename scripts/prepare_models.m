@@ -18,9 +18,8 @@ Path.output.NUDZ = [Path.output.root '\NUDZ'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
 % dataset:
-dataset = 'NUDZ';
-%dataset = 'BINO';
-indElec = false;
+%dataset = 'NUDZ';
+dataset = 'BINO';
 
 % Segmentations:
 methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
@@ -53,9 +52,6 @@ for s = 1:nSubjects
             [subjects(s).folder '\' subjects(s).name '\segmentation\' segmentations{m} '\' segFileName];
         Path.(subjects(s).name).sourcemodel.(segmentations{m}) =...
             [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
-        if indElec
-            Path.(subjects(s).name).elec = ; % TODO
-        end
     end
 end
 
@@ -81,9 +77,6 @@ for s = 1:nSubjects
     modelFT.mriSegmented.path = cell(1, nSegmentations);
     for m = 1:nSegmentations
         modelFT.mriSegmented.path{m} = Path.(subjects(s).name).segmentation.(segmentations{m});
-    end
-    if indElec
-        modelFT.elec = ; % TODO
     end
     cfgPipeline.model.fieldtrip = modelFT;
     forward_problem_pipeline(cfgPipeline);
