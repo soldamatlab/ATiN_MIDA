@@ -32,7 +32,7 @@ const_path % inits 'Path' struct
 
 %% Load elec template to test the path
 elecTemplatePath = Path.data.elec.HydroCel;
-if ~isfield(Config, 'elec')
+if isfield(Config, 'elec')
     elecTemplatePath = Config.elec;
 end
 [~] = ft_read_sens(elecTemplatePath);
