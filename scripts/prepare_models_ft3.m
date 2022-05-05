@@ -74,14 +74,10 @@ for s = 1:nSubjects
     mriSegmented = cell(1, nSegmentations);
     for m = 1:nSegmentations
         mriSegmented{m} = load_var_from_mat('mriSegmented', Path.(subjects(s).name).segmentation.(segmentations{m}));
-        if strcmp(methods{m}, 'mrtim')
-            mriSegmented{m}.gray = mriSegmented{m}.bgm | mriSegmented{m}.cgm;
-            mriSegmented{m} = rmfield(mriSegmented{m}, 'bgm');
-            mriSegmented{m} = rmfield(mriSegmented{m}, 'cgm');
-        elseif strcmp(methods{m}, 'fieldtrip') && layers(m) == 3
-            mriSegmented{m}.gray = mriSegmented{m}.brain;
-            mriSegmented{m} = rmfield(mriSegmented{m}, 'brain');
-        end
+        cfg = struct;
+        cfg.method = methods{m};
+        cfg.nLayers = layers(m);
+        mriSegmented{m} = prepare_gray(cfg, mriSegmented{m});
     end
     [pos, dim] = prepare_sourcepos(mriSegmented);
     
