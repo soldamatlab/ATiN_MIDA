@@ -6,6 +6,7 @@ function [fig] = plot_segmentation(Config, segmentation, anatomy)
 % Config.method & Config.nLayres - to set colormap from const_color.m
 %
 % Config.location
+% Config.crosshair
 % Config.visualize
 % Config.name
 % Config.save - string or array of strings (for multiple saves)
@@ -14,6 +15,7 @@ function [fig] = plot_segmentation(Config, segmentation, anatomy)
 visualize = true;
 cfg = struct;
 cfg.location = 'center';
+cfg.crosshair = 'no';
 cfg.funparameter = 'tissue';
 cfg.funcolormap  = lines;
 
@@ -23,6 +25,9 @@ if isfield(Config, 'visualize')
 end
 if isfield(Config, 'location')
     cfg.location = Config.location;
+end
+if isfield(Config, 'crosshair')
+    cfg.crosshair = Config.crosshair;
 end
 if isfield(Config, 'colormap')
     cfg.funcolormap = Config.colormap;

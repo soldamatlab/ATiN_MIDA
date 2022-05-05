@@ -7,6 +7,7 @@ visualize = true;
 cfg = [];
 cfg.funparameter = 'anatomy';
 cfg.location = 'center';
+cfg.crosshair = 'no';
 cfg.funcolormap = spring(2);
 
 %% Config
@@ -18,6 +19,9 @@ if isfield(Config, 'parameter')
 end
 if isfield(Config, 'location')
     cfg.funcolormap = Config.location;
+end
+if isfield(Config, 'crosshair')
+    cfg.crosshair = Config.crosshair;
 end
 if isfield(Config, 'colormap')
     cfg.funcolormap = Config.colormap;

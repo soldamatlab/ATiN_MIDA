@@ -35,6 +35,7 @@ mriPrepro = ft_convert_units(mriPrepro,'mm');
 %% visualize
 cfg = struct;
 cfg.location = 'center';
+cfg.crosshair = 'no';
 fig = figure;
 ft_sourceplot(cfg, mriPrepro);
 set(fig, 'Name', 'MRI resliced')
@@ -65,6 +66,7 @@ multipath_save(outputPath, 'mri_prepro', mriPrepro, 'mriPrepro');
 %% visualize
 cfg = struct;
 cfg.location = 'center';
+cfg.crosshair = 'no';
 fig = figure;
 ft_sourceplot(cfg, mriPrepro);
 set(fig, 'Name', 'MRI bias-corrected')
@@ -92,6 +94,7 @@ multipath_save(outputPath, 'norm2ind', norm2ind, 'norm2ind');
 %% visualize
 cfg = struct;
 cfg.location = 'center';
+cfg.crosshair = 'no';
 fig = figure;
 ft_sourceplot(cfg, mriNormalised);
 set(fig, 'Name', 'MRI normalised')

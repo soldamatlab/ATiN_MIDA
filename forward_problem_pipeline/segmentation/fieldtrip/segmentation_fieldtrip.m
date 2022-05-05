@@ -72,6 +72,7 @@ if preprocess
     %cfg.funparameter = 'anatomy';
     %cfg.colormap = spring;
     cfg.location = 'center';
+    cfg.crosshair = 'no';
     fig = figure;
     ft_sourceplot(cfg, mriOriginal);
     set(fig, 'Name', 'MRI original')
@@ -102,6 +103,7 @@ else
     %% visualize
     cfg = struct;
     cfg.location = 'center';
+    cfg.crosshair = 'no';
     fig = figure;
     ft_sourceplot(cfg, mriPrepro);
     set(fig, 'Name', 'Preprocessed MRI')
