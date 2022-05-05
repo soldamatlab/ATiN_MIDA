@@ -44,7 +44,7 @@ else
 end
 nSubjects = length(subjects);
 
-finished = NaN(nSubjects, nPairs);
+finished = NaN(nSubjects, 2*nPairs);
 for s = 1:nSubjects
     %% Get subject-relative paths
     Path.(subjects(s).name).root = [subjects(s).folder '\' subjects(s).name];
@@ -85,6 +85,13 @@ for s = 1:nSubjects
         cfgRel.visualize = false;
         
         name = sprintf('Compare %s with %s', segmentations{idx1}, segmentations{idx2});
-        finished(s,p) = run_submodule(@compare_segmentations, cfgRel, name);
+        finished(s,2*(p-1)+1) = run_submodule(@compare_segmentations, cfgRel, name);
+        
+        tmp = cfgRel.seg1;
+        cfgRel.seg1 = cfgRel.seg2;
+        cfgRel.seg2 = tmp;
+        
+        name = sprintf('Compare %s with %s', segmentations{idx2}, segmentations{idx1});
+        finished(s,2*p) = run_submodule(@compare_segmentations, cfgRel, name);
     end
 end
