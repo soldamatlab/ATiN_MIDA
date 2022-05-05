@@ -5,10 +5,10 @@ addpath_source;
 
 %% Paths & Config - Set manually
 % Local paths:
-%Path.output.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data'; % NTB
-Path.output.root = 'S:\BP_MIDA'; % PC-MATOUS
-%Path.output.root = '\\Pc-matous\bp_mida'; % PC-MATOUS remote
-%Path.output.root = 'S:\matous'; % PC-SIMON
+%Path.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data'; % NTB
+Path.root = 'S:\BP_MIDA'; % PC-MATOUS
+%Path.root = '\\Pc-matous\bp_mida'; % PC-MATOUS remote
+%Path.root = 'S:\matous'; % PC-SIMON
 
 Path.data.root = [Path.root '\data'];
 Path.data.NUDZ = [Path.data.root '\MR'];
@@ -18,8 +18,8 @@ Path.output.NUDZ = [Path.output.root '\NUDZ'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
 % dataset:
-dataset = 'NUDZ';
-%dataset = 'BINO';
+%dataset = 'NUDZ';
+dataset = 'BINO';
 
 % Segmentations:
 methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
@@ -78,6 +78,9 @@ for s = 1:nSubjects
             mriSegmented{m}.gray = mriSegmented{m}.bgm | mriSegmented{m}.cgm;
             mriSegmented{m} = rmfield(mriSegmented{m}, 'bgm');
             mriSegmented{m} = rmfield(mriSegmented{m}, 'cgm');
+        elseif strcmp(methods{m}, 'fieldtrip') && layers(m) == 3
+            mriSegmented{m}.gray = mriSegmented{m}.brain;
+            mriSegmented{m} = rmfield(mriSegmented{m}, 'brain');
         end
     end
     [pos, dim] = prepare_sourcepos(mriSegmented);

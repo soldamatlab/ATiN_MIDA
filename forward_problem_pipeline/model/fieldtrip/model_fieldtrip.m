@@ -311,17 +311,15 @@ for s = 1:nPath
 end
 
 %% Create sourcemodel
-mriBackup = cell(1, nPath);
+seg4source = cell(1, nPath);
 for s = 1:nPath
-    if strcmp(Config.mriSegmented.method{s}, 'mrtim')
-        mriBackup{s} = mriSegmented{s};
-        mriSegmented{s}.gray = mriSegmented{s}.bgm | mriSegmented{s}.cgm;
-        mriSegmented{s} = rmfield(mriSegmented{s}, 'bgm');
-        mriSegmented{s} = rmfield(mriSegmented{s}, 'cgm');
-    end
+    cfg = struct;
+    cfg.method = Config.mriSegmented.method{s};
+    cfg.nLayers = Config.mriSegmented.nLayers(s);
+    seg4source{s} = prepare_gray(cfg, mriSegmented{s});
 end
 if matchpos
-    [pos, dim] = prepare_sourcepos(mriSegmented);
+    [pos, dim] = prepare_sourcepos(seg4source);
 end
 
 sourcemodels = cell(1, nPath);
@@ -332,11 +330,11 @@ for s = 1:nPath
         if matchpos
             cfg.sourcemodel.pos = pos;
             cfg.sourcemodel.dim = dim;
-            cfg.sourcemodel.inside = get_inside(mriSegmented{s}, pos, 'mm');
+            cfg.sourcemodel.inside = get_inside(seg4source{s}, pos, 'mm');
         else
             cfg.sourcemodel.pos = Config.sourcemodel.pos;
             cfg.sourcemodel.dim = Config.sourcemodel.dim;
-            cfg.sourcemodel.inside = get_inside(mriSegmented{s}, Config.sourcemodel.pos, 'mm'); % TODO support other units
+            cfg.sourcemodel.inside = get_inside(seg4source{s}, Config.sourcemodel.pos, 'mm'); % TODO support other units
         end
         sourcemodel = ft_prepare_sourcemodel(cfg);
         cfg.sourcemodel = rm_field_data(cfg.sourcemodel, "pos", "Config.sourcemodel.pos");
@@ -348,7 +346,7 @@ for s = 1:nPath
         cfg.unit = 'mm';
         cfg.resolution = 6; % Shaine has 6 mm % tutorial: 7.5
         % ! resolution depends on both MRI and cfg units !
-        cfg.mri = mriSegmented{s};
+        cfg.mri = seg4source{s};
         cfg.smooth = 'no'; % tutorial: 5
         %cfg.threshold = 0.1; % is default
         %cfg.inwardshift = 1; % tutorial, shifts dipoles away from surfaces
@@ -366,7 +364,7 @@ for s = 1:nPath
     cfg.method = 'hexahedral';
     cfg.tissue = {'gray'};
     cfg.numvertices = 5000;
-    gray_mesh = ft_prepare_mesh(cfg, mriSegmented{s});
+    gray_mesh = ft_prepare_mesh(cfg, seg4source{s});
     gray_mesh = ft_convert_units(gray_mesh,'mm');
 
     fig = figure();
@@ -380,13 +378,7 @@ for s = 1:nPath
     end
     clear gray_mash;
 end
-
-for s = 1:nPath
-    if strcmp(Config.mriSegmented.method{s}, 'mrtim')
-        mriSegmented{s} = mriBackup{s};
-    end
-end
-clear mriBackup
+clear seg4source
 
 %% Leadfield
 for s = 1:nPath
