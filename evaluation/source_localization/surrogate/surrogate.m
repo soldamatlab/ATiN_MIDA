@@ -16,7 +16,7 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %    or
 %   Config.sourcemodel
 %   Config.headmodel
-%   Config.elec
+%   Config.elec (optional)
 %   Config.leadfield (optional)
 %
 % Optional:
@@ -26,6 +26,7 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   Config.dipoleDownsample = 1 (default) for no downsample,
 %                             'x' for every 'x'th dipole
 %
+%   Config.parallel         = true (default) to enable parallel computation
 %   Config.verbose          = true (default) to display resultTable
 %   Config.waitbar          = true (default) to show waitbar with ET
 %
@@ -57,6 +58,7 @@ T = 1; % [s] signal duration
 FS = 100; % [Hz] Sampling Frequency
 NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 
+PARALLEL = true;
 VERBOSE = true;
 WAITBAR = true;
 
@@ -119,6 +121,9 @@ if ismember(ELORETA, Config.method)
 end
 
 %% Config - miscellaneous
+if ~isfield(Config, 'parallel')
+    Config.parallel = PARALLEL;
+end
 if ~isfield(Config, 'verbose')
     Config.verbose = VERBOSE;
 end
@@ -150,8 +155,14 @@ else
     check_required_field(sourcemodel, 'leadfield');
     check_required_field(Config, 'headmodel');
     headmodel = Config.headmodel;
-    check_required_field(Config, 'elec');
-    elec = Config.elec;
+    if ~isfield(Config, 'elec') && ~isfield(headmodel, 'elec')
+        error("[Config] or [Config.headmodel] has to include field 'elec'.")
+    end
+    if isfield(Config, 'elec')
+        elec = Config.elec;
+    else
+        elec = headmodel.elec;
+    end
     if isfield(Config.leadfield)
         sourcemodel.leadfield = Config.leafield;
     end
@@ -258,11 +269,11 @@ for s = 1:nSNR
         cfg.covariancewindow = 'all';
         cfg.keeptrials       = 'no';
         cfg.vartrllength     = 2;
-        timelock = struct;
+        timelock = cell(nAXES, 1);
         lcmvLambdas = NaN(1, nAXES);
         for a = 1:nAXES
-            timelock.(AXES{a}) = ft_timelockanalysis(cfg, data.(AXES{a})); % TODO read doc
-            lcmvLambdas(a) = 0.003*max(eig(timelock.(AXES{a}).cov)); % TODO study
+            timelock{a} = ft_timelockanalysis(cfg, data.(AXES{a})); % TODO read doc
+            lcmvLambdas(a) = 0.003*max(eig(timelock{a}.cov)); % TODO study
         end
         
         %% Source Analysis - Solve
@@ -279,11 +290,29 @@ for s = 1:nSNR
             cfg.lcmv.keepcov      = 'yes';
             cfg.lcmv.keepmom      = 'no';
 
-            for a = 1:nAXES
-                cfg.lcmv.lambda = lcmvLambdas(a);
-                source.(LCMV).(AXES{a}) = ft_sourceanalysis(cfg, timelock.(AXES{a})); % TODO read doc
-                source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
-                evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+            if Config.parallel
+                cfgAnalysis = cell(nAXES, 1);
+                for a = 1:nAXES
+                    cfgAnalysis{a} = cfg;
+                    cfg.lcmv.lambda = lcmvLambdas(a);
+                end
+                sourceAnalysis = cell(nAXES, 1);
+                parfor a = 1:nAXES
+                    sourceAnalysis{a} = ft_sourceanalysis(cfgAnalysis{a}, timelock{a}); % TODO read doc
+                end
+                for a = 1:nAXES
+                    source.(LCMV).(AXES{a}) = sourceAnalysis{a};
+                    source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
+                    evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                end
+                clear sourceAnalysis
+            else
+                for a = 1:nAXES
+                    cfg.lcmv.lambda = lcmvLambdas(a);
+                    source.(LCMV).(AXES{a}) = ft_sourceanalysis(cfg, timelock{a}); % TODO read doc
+                    source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
+                    evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                end
             end
         end
         %% eLORETA
@@ -296,11 +325,24 @@ for s = 1:nSNR
             cfg.elec               = elec;
             cfg.eloreta.keepfilter = 'no';
             cfg.eloreta.keepmom    = 'no';
-
-            for a = 1:nAXES
-                source.(ELORETA).(AXES{a}) = ft_sourceanalysis(cfg, timelock.(AXES{a}));
-                source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
-                evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+            
+            if Config.parallel
+                sourceAnalysis = cell(nAXES, 1);
+                parfor a = 1:nAXES
+                    sourceAnalysis{a} = ft_sourceanalysis(cfg, timelock{a});
+                end
+                for a = 1:nAXES
+                    source.(ELORETA).(AXES{a}) = sourceAnalysis{a};
+                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
+                    evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                end
+                clear sourceAnalysis
+            else
+                for a = 1:nAXES
+                    source.(ELORETA).(AXES{a}) = ft_sourceanalysis(cfg, timelock{a});
+                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
+                    evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                end
             end
         end
         
