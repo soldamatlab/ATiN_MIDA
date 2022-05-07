@@ -7,6 +7,7 @@ an individual MRI image of the head for EEG source localization.
 Image Processing Toolbox
 Curve Fitting Toolbox
 Signal Processing Toolbox
+Communications Toolbox
 
 	Required external toolboxes:
 SPM12

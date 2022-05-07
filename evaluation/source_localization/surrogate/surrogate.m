@@ -31,6 +31,7 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   Config.parallel         = true (default) to enable parallel computation
 %   Config.verbose          = true (default) to display resultTable
 %   Config.waitbar          = true (default) to show waitbar with ET
+%   Config.allowExistingFolder = false (defaults)
 %
 % Signal: TODO doc
 %   Config.signal.snr       = Signal to Noise Ratio
@@ -65,8 +66,11 @@ VERBOSE = true;
 WAITBAR = true;
 
 %% Config - output
+if ~isfield(Config, 'allowExistingFolder')
+    Config.allowExistingFolder = false;
+end
 check_required_field(Config, 'output');
-[output, ~] = create_output_folder(Config.output, false, false);
+[output, ~] = create_output_folder(Config.output, Config.allowExistingFolder, false);
 
 %% Config - Signal
 if ~isfield(Config, 'signal')

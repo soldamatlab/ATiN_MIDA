@@ -41,27 +41,30 @@ end
 nSubjects = length(subjects);
 for s = 1:nSubjects
     for m = 1:nSegmentations
-        Path.(subjects(s).name).sourcemodel.(segmentations{m}) =...
-            [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m} '\' sourcemodelFileName];
+        Path.(subjects(s).name).model.(segmentations{m}) =...
+            [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m}];
     end
 end
 
 %% Prepare models
-cfg = struct;
-cfg.method = 'eloreta';
+cfgSurrogate = struct;
+
+cfgSurrogate.method = 'eloreta';
 SNR = [5, 10, 15, 25];
-cfg.dipoleDownsample = 1;
+cfgSurrogate.dipoleDownsample = 1;
+
+cfgSurrogate.allowExistingFolder = true;
 
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects
     for r = 1:length(SNR)
-        cfg.signal.snr = SNR(r);
+        cfgSurrogate.signal.snr = SNR(r);
         for m = 1:nSegmentations
-            cfg.modelPath = Path.(subjects(s).name).sourcemodel.(segmentations{m});
-            cfg.output = [cfg.modelPath '\..\..\evaluation\surrogate'];
+            cfgSurrogate.modelPath = Path.(subjects(s).name).model.(segmentations{m});
+            cfgSurrogate.output = [cfgSurrogate.modelPath '\..\..\evaluation\surrogate'];
 
             submoduleName = sprintf("EVALUATING SUBJECT '%s' MODEL '%s' with SNR = '%d' dB\n", subjects(s).name, segmentations{m}, SNR(r));
-            finished(s,m) = run_submodule(@surrogate, cfg, submoduleName);
+            finished(s,m) = run_submodule(@surrogate, cfgSurrogate, submoduleName);
         end
     end
 end
