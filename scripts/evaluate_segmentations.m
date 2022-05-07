@@ -62,7 +62,7 @@ for s = 1:nSubjects
         Path.(subjects(s).name).segmentation.(segmentations{m}).prepro = [Path.(subjects(s).name).segmentation.(segmentations{m}).root '\' preproName];
     end
     
-    %% Comapre segmentations with each other
+    %% Compare segmentations with each other
     for p = 1:nPairs
         idx1 = pairs(p,1);
         idx2 = pairs(p,2);
