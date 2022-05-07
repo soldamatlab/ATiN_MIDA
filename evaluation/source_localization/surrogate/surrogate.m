@@ -9,6 +9,8 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   [evaluation, evaluationTable] = surrogate(Config)
 %
 % Required:
+%   Config.output
+%
 %   Config.modelPath        = path to folder with files:
 %                             sourcemodel.mat with var 'sourcemodel' / leadfield.mat with var 'leadfield'          
 %                             headmodel.mat with var 'headmodel'
@@ -50,7 +52,7 @@ METHOD = {ELORETA};
 AXES = {'x', 'y', 'z'};
 DIPOLE_DOWNSAMPLE = 1; % 1 for no downsample, 'x' for every 'x'th dipole
 ELORETA_SUPPORTED_SNR = [5 10 15 25]; % each SNR needs a lambda
-ELORETA_LAMBDAS = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
+ELORETA_LAMBDAS = [10753.1834949415, 0.257843673057386, 0.0739440420798500, 0.00769461295275684];
 
 SNR = 10; % Signal to Noise Ratio
 T = 1; % [s] signal duration
@@ -75,7 +77,7 @@ if ~isfield(Config, 'signal')
     Config.signal.noisePower = NOISE_POWER;
 else
     if isfield(Config.signal, 'snr')
-        if iscell(Config.snr)
+        if iscell(Config.signal.snr)
             Config.signal.snr = cell2mat(Config.signal.snr);
         end
     else
@@ -97,10 +99,7 @@ end
 
 %% Config - Method
 if isfield(Config, 'method')
-    Config.method = string(Config.method);
-    if ~iscell(Config.method)
-        Config.method = num2cell(Config.method);
-    end
+    Config.method = cellstr(Config.method);
 else
     Config.method = METHOD;
 end
@@ -114,7 +113,7 @@ if ismember(ELORETA, Config.method)
             if ~ismember(Config.signal.snr(s), ELORETA_SUPPORTED_SNR)
                 error("Default eLORETA lambdas are only defined for SNR = [5, 10, 15, 25]. Choose one of default SNRs or define eLORETA lambdas for each used SNR (in the same order) in 'Config.eloreta.lambdas'.")
             else
-                Config.eloreta.lambdas(s) = ELORETA_LAMBDAS{Config.signal.snr(s) == SNR};
+                Config.eloreta.lambdas(s) = ELORETA_LAMBDAS(Config.signal.snr(s) == ELORETA_SUPPORTED_SNR);
             end
         end
     end
@@ -201,7 +200,6 @@ nAXES = length(AXES);
 t = 0 : 1/fs : T - 1/fs;
 
 sourceTemplate = get_source_template(sourcemodel);
-[output, ~] = create_output_folder(output);
 
 % TODO make evaluation init into a function
 evaluation = struct;

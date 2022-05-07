@@ -7,11 +7,12 @@ addpath_source;
 cfg = struct;
 
 % choose one or more from 'SUPPORTED_METHODS' in surrogate.m
-cfg.method = "eloreta";
-cfg.snr = [5, 25];
-cfg.dipoleDownsample = 512; % 1 for no downsample, 'x' for every 'x'th dipole
+cfg.method = 'eloreta';
+cfg.signal.snr = [5, 25];
+cfg.dipoleDownsample = 1; % 1 for no downsample, 'x' for every 'x'th dipole
 
-cfg.modelPath = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data\out\model_fieldtrip_test\03'; % TODO
+cfg.modelPath = '\S:\BP_MIDA\analysis\BINO\S1\model\mrtim12';
+cfg.output = [cfg.modelPath '\..\..\evaluation\surrogate'];
 
 %% Run
 [evaluation, evaluationTable] = surrogate(cfg);
