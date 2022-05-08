@@ -324,7 +324,7 @@ for s = 1:nSNR
             eLoretaCfg.headmodel          = headmodel;
             eLoretaCfg.elec               = elec;
             eLoretaCfg.eloreta.keepfilter = 'no';
-            eLoretaCfg.eloreta.keepmom    = 'no'; % TODO read doc
+            eLoretaCfg.eloreta.keepmom    = 'no';
             eLoretaCfg.eloreta.lambda     = eloretaLambdas(s);
             if isfield(computationData.eloreta, 'filter')
                 eLoretaCfg.eloreta.filter = computationData.eloreta.filter;
@@ -339,14 +339,14 @@ for s = 1:nSNR
                 end
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = sourceAnalysis{a};
-                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
+                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO
                     evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
                 end
                 clear sourceAnalysis
             else
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = ft_sourceanalysis(eLoretaCfg, timelock{a});
-                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
+                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO
                     evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
                 end
             end
@@ -372,6 +372,7 @@ for s = 1:nSNR
                 evaluation.(method{m}).(SNRnames{s}).ed1(d,a) = ed1(cfg);
             end
         end
+        
         %% ED2
         cfg = struct;
         cfg.sourcemodel = sourcemodel;

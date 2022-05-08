@@ -35,12 +35,20 @@ else
     error("[Config] must include 'dipoleValues' or 'source' field.");
 end
 
+%% Get Local Maxima
+cfg = struct;
+cfg.val = values;
+cfg.pos = sourcemodel.pos;
+cfg.dim = sourcemodel.dim;
+[grid, ~] = source2grid(cfg);
+grid(isnan(grid)) = min(grid,[],'all') - 1; % convert NaNs & ensure NaNs are not local maxima
+isLocmax = imregionalmax(grid, 26); % 26 is default
+isLocmax = reshape(isLocmax, [numel(isLocmax),1]);
+
 %% Compute
-locmax = sj_locmax3d(values, sourcemodel);
-locmaxPositions = sourcemodel.pos(locmax, :);
+locmaxPositions = sourcemodel.pos(isLocmax, :);
 locmaxDists = vecnorm(truePosition - locmaxPositions,2,2);
-locmaxValues = make_column(values(locmax));
+locmaxValues = make_column(values(isLocmax));
 locmaxWeights = locmaxValues / max(locmaxValues);
 ed2 = sum(locmaxWeights .* locmaxDists);
 end
-
