@@ -176,7 +176,9 @@ end
 %% Init
 method = Config.method;
 dipoleDownsample = Config.dipoleDownsample;
-eloretaLambdas = Config.eloreta.lambdas;
+if ismember(ELORETA, method)
+    eloretaLambdas = Config.eloreta.lambdas;
+end
 SNR = Config.signal.snr;
 T = Config.signal.T;
 %T_seg = Config.signal.Tseg;
