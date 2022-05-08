@@ -201,10 +201,7 @@ nAXES = length(AXES);
 
 t = 0 : 1/fs : T - 1/fs;
 
-computationData = struct;
-computationData.eloreta = struct;
-computationData.lcmv = struct;
-computationData.sourceTemplate = get_source_template(sourcemodel);
+sourceTemplate = get_source_template(sourcemodel);
 
 % TODO make evaluation init into a function
 evaluation = struct;
@@ -234,7 +231,7 @@ for s = 1:nSNR
         
         %% Simualte signal
         signal = wgn(1, T*fs, noisePower);
-        sourcemap = computationData.sourceTemplate;
+        sourcemap = sourceTemplate;
         sourcemap(dipoleIndexes(d)) = sqrt(sum(signal.^2));
         evaluation.truthMaps.(SNRnames{s}).maps{d} = sourcemap;
         
@@ -330,9 +327,7 @@ for s = 1:nSNR
             eLoretaCfg.eloreta.keepfilter = 'no';
             eLoretaCfg.eloreta.keepmom    = 'no';
             eLoretaCfg.eloreta.lambda     = eloretaLambdas(s);
-            if isfield(computationData.eloreta, 'filter')
-                eLoretaCfg.eloreta.filter = computationData.eloreta.filter;
-            else
+            if ~isfield(sourcemodel, 'filter')
                 eLoretaCfg.eloreta.keepfilter = 'yes';
             end
             
@@ -354,8 +349,8 @@ for s = 1:nSNR
                 end
             end
             
-            if ~isfield(computationData.eloreta, 'filter')
-                computationData.eloreta.filter = source.(ELORETA).(AXES{1}).avg.filter;
+            if ~isfield(sourcemodel, 'filter')
+                sourcemodel.filter = source.(ELORETA).(AXES{1}).avg.filter;
             end
         end
         
