@@ -283,7 +283,7 @@ for s = 1:nSNR
         if ismember(LCMV, method)
             cfg                   = struct;
             cfg.method            = 'lcmv';
-            cfg.grid              = sourcemodel;
+            cfg.sourcemodel       = sourcemodel;
             cfg.headmodel         = headmodel;
             cfg.lcmv.projectnoise = 'yes';
             cfg.elec              = elec;
@@ -320,7 +320,7 @@ for s = 1:nSNR
         if ismember(ELORETA, method)
             eLoretaCfg                    = struct;
             eLoretaCfg.method             = 'eloreta';
-            eLoretaCfg.grid               = sourcemodel;
+            eLoretaCfg.sourcemodel        = sourcemodel;
             eLoretaCfg.headmodel          = headmodel;
             eLoretaCfg.elec               = elec;
             eLoretaCfg.eloreta.keepfilter = 'no';
