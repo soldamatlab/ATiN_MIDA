@@ -54,6 +54,7 @@ SNR = 10;
 cfgSurrogate.dipoleDownsample = 1;
 
 cfgSurrogate.allowExistingFolder = false;
+cfg.Surrogate.parallel = false;
 
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects

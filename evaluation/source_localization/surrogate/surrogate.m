@@ -64,10 +64,11 @@ NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 PARALLEL = true;
 VERBOSE = true;
 WAITBAR = true;
+ALLOW_EXISTING_FOLDER = false;
 
 %% Config - output
 if ~isfield(Config, 'allowExistingFolder')
-    Config.allowExistingFolder = false;
+    Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
 end
 check_required_field(Config, 'output');
 [output, ~] = create_output_folder(Config.output, Config.allowExistingFolder, false);
