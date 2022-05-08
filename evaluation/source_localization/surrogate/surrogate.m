@@ -172,11 +172,6 @@ else
     check_required_field(sourcemodel, 'leadfield');
 end
 
-%% Init FieldTrip
-const_path % initializes 'Path' struct
-addpath(Path.toolbox.fieldtrip)
-ft_defaults
-
 %% Init
 method = Config.method;
 dipoleDownsample = Config.dipoleDownsample;
@@ -203,7 +198,10 @@ nAXES = length(AXES);
 
 t = 0 : 1/fs : T - 1/fs;
 
-sourceTemplate = get_source_template(sourcemodel);
+computationData = struct;
+computationData.eloreta = struct;
+computationData.lcmv = struct;
+computationData.sourceTemplate = get_source_template(sourcemodel);
 
 % TODO make evaluation init into a function
 evaluation = struct;
@@ -224,6 +222,7 @@ if showBar
     figBar = waitbar(bar/barMax, {['Computed: 0 / ' num2str(barMax)], 'Estimated Time Remaining: TBD'},...
         'Name', 'Surrogate Source Localization');
 end
+
 for s = 1:nSNR
     for d = 1:nDipoleIndexes
         if showBar
@@ -232,7 +231,7 @@ for s = 1:nSNR
         
         %% Simualte signal
         signal = wgn(1, T*fs, noisePower);
-        sourcemap = sourceTemplate;
+        sourcemap = computationData.sourceTemplate;
         sourcemap(dipoleIndexes(d)) = sqrt(sum(signal.^2));
         evaluation.truthMaps.(SNRnames{s}).maps{d} = sourcemap;
         
@@ -280,7 +279,7 @@ for s = 1:nSNR
         
         %% Source Analysis - Solve
         source = struct;
-        %% LCMV (Linear Constrained Minimal Variance)
+        %% LCMV (Linear Constrained Minimal Variance) % ! NOT TESTED, NOT OPTIMIZED
         if ismember(LCMV, method)
             cfg                   = struct;
             cfg.method            = 'lcmv';
@@ -319,19 +318,24 @@ for s = 1:nSNR
         end
         %% eLORETA
         if ismember(ELORETA, method)
-            cfg                    = [];
-            cfg.method             = 'eloreta';
-            cfg.grid               = sourcemodel;
-            cfg.headmodel          = headmodel;
-            cfg.eloreta.lambda     = eloretaLambdas(s);
-            cfg.elec               = elec;
-            cfg.eloreta.keepfilter = 'no';
-            cfg.eloreta.keepmom    = 'no';
+            eLoretaCfg                    = struct;
+            eLoretaCfg.method             = 'eloreta';
+            eLoretaCfg.grid               = sourcemodel;
+            eLoretaCfg.headmodel          = headmodel;
+            eLoretaCfg.elec               = elec;
+            eLoretaCfg.eloreta.keepfilter = 'no';
+            eLoretaCfg.eloreta.keepmom    = 'no'; % TODO read doc
+            eLoretaCfg.eloreta.lambda     = eloretaLambdas(s);
+            if isfield(computationData.eloreta, 'filter')
+                eLoretaCfg.eloreta.filter = computationData.eloreta.filter;
+            else
+                eLoretaCfg.eloreta.keepfilter = 'yes';
+            end
             
             if Config.parallel
                 sourceAnalysis = cell(nAXES, 1);
                 parfor a = 1:nAXES
-                    sourceAnalysis{a} = ft_sourceanalysis(cfg, timelock{a});
+                    sourceAnalysis{a} = ft_sourceanalysis(eLoretaCfg, timelock{a});
                 end
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = sourceAnalysis{a};
@@ -341,10 +345,14 @@ for s = 1:nSNR
                 clear sourceAnalysis
             else
                 for a = 1:nAXES
-                    source.(ELORETA).(AXES{a}) = ft_sourceanalysis(cfg, timelock{a});
+                    source.(ELORETA).(AXES{a}) = ft_sourceanalysis(eLoretaCfg, timelock{a});
                     source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO why transpose
                     evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
                 end
+            end
+            
+            if ~isfield(computationData.eloreta, 'filter')
+                computationData.eloreta.filter = source.(ELORETA).(AXES{1}).avg.filter;
             end
         end
         
