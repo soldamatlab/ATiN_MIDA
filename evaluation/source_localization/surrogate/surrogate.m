@@ -61,7 +61,7 @@ T = 1; % [s] signal duration
 FS = 100; % [Hz] Sampling Frequency
 NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 
-PARALLEL = true;
+PARALLEL = false;
 VERBOSE = true;
 WAITBAR = true;
 ALLOW_EXISTING_FOLDER = false;

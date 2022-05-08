@@ -54,7 +54,6 @@ SNR = 10;
 cfgSurrogate.dipoleDownsample = 1;
 
 cfgSurrogate.allowExistingFolder = false;
-cfg.Surrogate.parallel = false;
 
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects
@@ -62,7 +61,7 @@ for s = 1:nSubjects
         cfgSurrogate.signal.snr = SNR(r);
         for m = 1:nSegmentations
             cfgSurrogate.modelPath = Path.(subjects(s).name).model.(segmentations{m});
-            cfgSurrogate.output = sprintf('%s%s%d', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate_SNR', SNR(r));
+            cfgSurrogate.output = sprintf('%s%s%s', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate\', segmentations{m});
 
             submoduleName = sprintf("EVALUATING SUBJECT '%s' MODEL '%s' with SNR = '%d' dB\n", subjects(s).name, segmentations{m}, SNR(r));
             finished(s,m) = run_submodule(@surrogate, cfgSurrogate, submoduleName);
