@@ -281,7 +281,7 @@ for s = 1:nSNR
         end
         
         %% Source Analysis - Solve
-        source = struct;
+        source = struct;        
         %% LCMV (Linear Constrained Minimal Variance) % ! NOT TESTED, NOT OPTIMIZED
         if ismember(LCMV, method)
             cfg                   = struct;
@@ -302,7 +302,7 @@ for s = 1:nSNR
                 end
                 sourceAnalysis = cell(nAXES, 1);
                 parfor a = 1:nAXES
-                    sourceAnalysis{a} = ft_sourceanalysis(cfgAnalysis{a}, timelock{a}); % TODO read doc
+                    sourceAnalysis{a} = ft_sourceanalysis(cfgAnalysis{a}, timelock{a});
                 end
                 for a = 1:nAXES
                     source.(LCMV).(AXES{a}) = sourceAnalysis{a};
@@ -319,6 +319,7 @@ for s = 1:nSNR
                 end
             end
         end
+        
         %% eLORETA
         if ismember(ELORETA, method)
             eLoretaCfg                    = struct;
@@ -342,7 +343,6 @@ for s = 1:nSNR
                 end
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = sourceAnalysis{a};
-                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO
                     evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
                 end
                 clear sourceAnalysis
@@ -360,10 +360,9 @@ for s = 1:nSNR
         end
         
         %% Metrics
-        %% ED1
         valueParameter.default = 'pow';
         valueParameter.(LCMV) = 'nai';
-
+        %% ED1
         cfg = struct;
         cfg.dipoleIdx = dipoleIndexes(d);
         cfg.sourcemodel = sourcemodel;

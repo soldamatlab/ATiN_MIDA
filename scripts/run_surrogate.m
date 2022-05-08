@@ -11,8 +11,6 @@ cfg.method = 'eloreta';
 cfg.signal.snr = 10;
 cfg.dipoleDownsample = 1; % 1 for no downsample, 'x' for every 'x'th dipole
 
-cfg.parallel = false;
-
 cfg.modelPath = '\S:\BP_MIDA\analysis\BINO\S1\model\mrtim12';
 cfg.output = [cfg.modelPath '\..\..\evaluation\surrogate'];
 
