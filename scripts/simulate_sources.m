@@ -50,10 +50,10 @@ end
 cfgSurrogate = struct;
 
 cfgSurrogate.method = 'eloreta';
-SNR = [5, 10, 15, 25];
+SNR = 10;
 cfgSurrogate.dipoleDownsample = 1;
 
-cfgSurrogate.allowExistingFolder = true;
+cfgSurrogate.allowExistingFolder = false;
 
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects
@@ -61,7 +61,7 @@ for s = 1:nSubjects
         cfgSurrogate.signal.snr = SNR(r);
         for m = 1:nSegmentations
             cfgSurrogate.modelPath = Path.(subjects(s).name).model.(segmentations{m});
-            cfgSurrogate.output = [cfgSurrogate.modelPath '\..\..\evaluation\surrogate'];
+            cfgSurrogate.output = sprintf('%s%s%d', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate_SNR', SNR(r));
 
             submoduleName = sprintf("EVALUATING SUBJECT '%s' MODEL '%s' with SNR = '%d' dB\n", subjects(s).name, segmentations{m}, SNR(r));
             finished(s,m) = run_submodule(@surrogate, cfgSurrogate, submoduleName);
