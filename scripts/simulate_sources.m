@@ -26,6 +26,11 @@ methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
 layers =   [ 3,                5,                           12    ];
 suffixes = {'anatomy_prepro', 'anatomy_prepro',            ''     };
 
+% Filenames:
+preproFileName = struct;
+preproFileName.fieldtrip = 'mri_prepro.mat';
+preproFileName.mrtim = 'anatomy_prepro.nii';
+
 %% Get paths to models
 methods = convertStringsToChars(methods);
 suffixes = convertStringsToChars(suffixes);
@@ -43,6 +48,8 @@ for s = 1:nSubjects
     for m = 1:nSegmentations
         Path.(subjects(s).name).model.(segmentations{m}) =...
             [subjects(s).folder '\' subjects(s).name '\model\' segmentations{m}];
+        Path.(subjects(s).name).mriPrepro.(segmentations{m}) =...
+            [subjects(s).folder '\' subjects(s).name '\segmentation\' segmentations{m} '\' preproFileName.(methods{m})];
     end
 end
 
@@ -51,9 +58,10 @@ cfgSurrogate = struct;
 
 cfgSurrogate.method = 'eloreta';
 SNR = 10;
-cfgSurrogate.dipoleDownsample = 1;
+cfgSurrogate.dipoleDownsample = 2;
 
 cfgSurrogate.allowExistingFolder = false;
+cfgSurrogate.visualize = false;
 
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects
@@ -61,6 +69,7 @@ for s = 1:nSubjects
         cfgSurrogate.signal.snr = SNR(r);
         for m = 1:nSegmentations
             cfgSurrogate.modelPath = Path.(subjects(s).name).model.(segmentations{m});
+            cfgSurrogate.mri = Path.(subjects(s).name).mriPrepro.(segmentations{m});
             cfgSurrogate.output = sprintf('%s%s%s', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate\', segmentations{m});
 
             submoduleName = sprintf("EVALUATING SUBJECT '%s' MODEL '%s' with SNR = '%d' dB\n", subjects(s).name, segmentations{m}, SNR(r));

@@ -26,12 +26,16 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %                             default is {"eloreta"}
 %
 %   Config.dipoleDownsample = 1 (default) for no downsample,
-%                             'x' for every 'x'th dipole
+%                             'x' for every 'x'th dipole (for each axis)
 %
+%   Config.keepMaps         = false (default)
 %   Config.parallel         = true (default) to enable parallel computation
 %   Config.verbose          = true (default) to display resultTable
 %   Config.waitbar          = true (default) to show waitbar with ET
-%   Config.allowExistingFolder = false (defaults)
+%   Config.allowExistingFolder = false (default)
+%
+%   Config.mri              = for plotting
+%   Config.mriVarName       = if [Config.mri] is path to a '.mat' file
 %
 % Signal: TODO doc
 %   Config.signal.snr       = Signal to Noise Ratio
@@ -61,17 +65,23 @@ T = 1; % [s] signal duration
 FS = 100; % [Hz] Sampling Frequency
 NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 
+KEEP_MAPS = false;
 PARALLEL = false;
+VISUALIZE = true;
 VERBOSE = true;
 WAITBAR = true;
 ALLOW_EXISTING_FOLDER = false;
+MRI_VAR_NAME = 'mriPrepro';
 
 %% Config - output
 if ~isfield(Config, 'allowExistingFolder')
     Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
 end
+if isfield(Config, 'modelPath') && ~isfield(Config, 'output')
+    Config.output = [Config.modelPath '\evaluation\surrogate'];
+end
 check_required_field(Config, 'output');
-[output, ~] = create_output_folder(Config.output, Config.allowExistingFolder, false);
+[output, imgPath] = create_output_folder(Config.output, Config.allowExistingFolder, true);
 
 %% Config - Signal
 if ~isfield(Config, 'signal')
@@ -125,8 +135,14 @@ if ismember(ELORETA, Config.method)
 end
 
 %% Config - miscellaneous
+if ~isfield(Config, 'keepMaps')
+    Config.keepMaps = KEEP_MAPS;
+end
 if ~isfield(Config, 'parallel')
     Config.parallel = PARALLEL;
+end
+if ~isfield(Config, 'visualize')
+    Config.visualize = VISUALIZE;
 end
 if ~isfield(Config, 'verbose')
     Config.verbose = VERBOSE;
@@ -149,10 +165,7 @@ if isfield(Config, 'modelPath')
     end
     load([Config.modelPath '\headmodel'], 'headmodel');
     load([Config.modelPath '\elec'], 'elec');
-
-    if ~isfield(Config, 'output')
-        Config.output = [Config.modelPath '\evaluation\surrogate'];
-    end
+    
 else
     check_required_field(Config, 'sourcemodel');
     sourcemodel = Config.sourcemodel;
@@ -173,21 +186,45 @@ else
     check_required_field(sourcemodel, 'leadfield');
 end
 
+plotAnatomy = isfield(Config, 'mri');
+if plotAnatomy % test mri path
+    if isfield(Config, 'mriVarName')
+        mriVarName = Config.mriVarName;
+    else
+        mriVarName = MRI_VAR_NAME;
+    end
+    mri = load_mri_anytype(Config.mri, mriVarName);
+    clear mri
+end
+
+save([output '\config'], 'Config');
+
 %% Init
 method = Config.method;
 dipoleDownsample = Config.dipoleDownsample;
 if ismember(ELORETA, method)
     eloretaLambdas = Config.eloreta.lambdas;
 end
+
 SNR = Config.signal.snr;
 T = Config.signal.T;
 %T_seg = Config.signal.Tseg;
 fs = Config.signal.fs;
 noisePower = Config.signal.noisePower;
+
+keepMaps = Config.keepMaps;
+parallel = Config.parallel;
+visualize = Config.visualize;
 verbose = Config.verbose;
 showBar = Config.waitbar;
 
-dipoleIndexes = 1:dipoleDownsample:length(sourcemodel.inside);
+[sourcemodelDS, keep] = downsample_sourcemodel(sourcemodel, dipoleDownsample);
+
+dipoleIndexesDS = 1:length(sourcemodelDS.inside);
+dipoleIndexesDS = dipoleIndexesDS(sourcemodelDS.inside(dipoleIndexesDS));
+
+dipoleIndexes = 1:length(sourcemodel.inside);
+dipoleIndexes = dipoleIndexes(keep);
 dipoleIndexes = dipoleIndexes(sourcemodel.inside(dipoleIndexes));
 nDipoleIndexes = length(dipoleIndexes);
 
@@ -201,17 +238,25 @@ nAXES = length(AXES);
 
 t = 0 : 1/fs : T - 1/fs;
 
-sourceTemplate = get_source_template(sourcemodel);
-
 % TODO make evaluation init into a function
 evaluation = struct;
 evaluation.dipoleIndexes = make_column(dipoleIndexes);
+evaluation.dipoleIndexesDS = make_column(dipoleIndexesDS);
 for s = 1:nSNR
-    evaluation.truthMaps.(SNRnames{s}).maps = cell(nDipoleIndexes, 1);
     for m = 1:nMethod
-        evaluation.(method{m}).(SNRnames{s}).maps = cell(nDipoleIndexes, nAXES);
         evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nDipoleIndexes, nAXES);
         evaluation.(method{m}).(SNRnames{s}).ed2 = NaN(nDipoleIndexes, nAXES);
+    end
+end
+
+if keepMaps
+    sourceTemplate = get_source_template(sourcemodel);
+    maps = struct;
+    for s = 1:nSNR
+        maps.truth.(SNRnames{s}) = cell(nDipoleIndexes, 1);
+        for m = 1:nMethod
+            maps.(method{m}).(SNRnames{s}) = cell(nDipoleIndexes, nAXES);
+        end
     end
 end
 
@@ -231,9 +276,11 @@ for s = 1:nSNR
         
         %% Simualte signal
         signal = wgn(1, T*fs, noisePower);
-        sourcemap = sourceTemplate;
-        sourcemap(dipoleIndexes(d)) = sqrt(sum(signal.^2));
-        evaluation.truthMaps.(SNRnames{s}).maps{d} = sourcemap;
+        if keepMaps
+            sourcemap = sourceTemplate;
+            sourcemap(dipoleIndexes(d)) = sqrt(sum(signal.^2));
+            maps.truth.(SNRnames{s}){d} = sourcemap;
+        end
         
         dipoleLeadfield = sourcemodel.leadfield{1, dipoleIndexes(d)};
         potencial = struct;
@@ -291,7 +338,7 @@ for s = 1:nSNR
             cfg.lcmv.keepcov      = 'yes';
             cfg.lcmv.keepmom      = 'no';
 
-            if Config.parallel
+            if parallel
                 cfgAnalysis = cell(nAXES, 1);
                 for a = 1:nAXES
                     cfgAnalysis{a} = cfg;
@@ -304,7 +351,9 @@ for s = 1:nSNR
                 for a = 1:nAXES
                     source.(LCMV).(AXES{a}) = sourceAnalysis{a};
                     source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
-                    evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                    if keepMaps
+                        maps.(LCMV).(SNRnames{s}){d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                    end
                 end
                 clear sourceAnalysis
             else
@@ -312,7 +361,9 @@ for s = 1:nSNR
                     cfg.lcmv.lambda = lcmvLambdas(a);
                     source.(LCMV).(AXES{a}) = ft_sourceanalysis(cfg, timelock{a}); % TODO read doc
                     source.(LCMV).(AXES{a}).avg.nai = source.(LCMV).(AXES{a}).avg.pow ./ source.(LCMV).(AXES{a}).avg.noise;
-                    evaluation.(LCMV).(SNRnames{s}).maps{d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                    if keepMaps
+                        maps.(LCMV).(SNRnames{s}){d,a} = source.(LCMV).(AXES{a}).avg.nai;
+                    end
                 end
             end
         end
@@ -331,21 +382,24 @@ for s = 1:nSNR
                 eLoretaCfg.eloreta.keepfilter = 'yes';
             end
             
-            if Config.parallel
+            if parallel
                 sourceAnalysis = cell(nAXES, 1);
                 parfor a = 1:nAXES
                     sourceAnalysis{a} = ft_sourceanalysis(eLoretaCfg, timelock{a});
                 end
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = sourceAnalysis{a};
-                    evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                    if keepMaps
+                        maps.(ELORETA).(SNRnames{s}){d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                    end
                 end
                 clear sourceAnalysis
             else
                 for a = 1:nAXES
                     source.(ELORETA).(AXES{a}) = ft_sourceanalysis(eLoretaCfg, timelock{a});
-                    source.(ELORETA).(AXES{a}).avg.pow = source.(ELORETA).(AXES{a}).avg.pow'; % TODO
-                    evaluation.(ELORETA).(SNRnames{s}).maps{d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                    if keepMaps
+                        maps.(ELORETA).(SNRnames{s}){d,a} = source.(ELORETA).(AXES{a}).avg.pow;
+                    end
                 end
             end
             
@@ -397,8 +451,7 @@ end
 
 %% Evaluate & Save
 for m = 1:nMethod
-    for s = 1:nSNR
-        % TODO test no 'omitnan'
+    for s = 1:nSNR 
         evaluation.(method{m}).(SNRnames{s}).ed1mean = mean(evaluation.(method{m}).(SNRnames{s}).ed1, 1, 'omitnan');
         evaluation.(method{m}).(SNRnames{s}).ed1std = std(evaluation.(method{m}).(SNRnames{s}).ed1, 0, 1, 'omitnan');
         evaluation.(method{m}).(SNRnames{s}).ed2mean = mean(evaluation.(method{m}).(SNRnames{s}).ed2, 'all', 'omitnan');
@@ -406,6 +459,10 @@ for m = 1:nMethod
     end
 end
 save([output '\evaluation'], 'evaluation');
+save([output '\sourcemodelDP'], 'sourcemodelDP');
+if keepMaps
+    save([output '\maps'], 'maps');
+end
 
 %% Plot Results in Table
 cfg = struct;
@@ -415,4 +472,47 @@ cfg.SNRnames = SNRnames;
 cfg.verbose = verbose;
 cfg.save = [output '\evaluation_table'];
 evaluationTable = plot_evaluation_table(cfg, evaluation);
+
+return
+%% Plot Results on MRI
+if plotAnatomy
+    mri = load_mri_anytype(Config.mri, mriVarName);
+end
+index = {'ed1', 'ed2'};
+for i = 1:length(index)
+    for m = 1:nMethod
+        for s = 1:nSNR
+            for a = 1:nAXES
+                indexValues = evaluation.(method{m}).(SNRnames{s}).(index{i});
+                indexMap = zeros(length(sourcemodelDS.inside), 1);
+                indexMap(dipoleIndexesDS) = indexValues(:,a);
+                
+                sourcePlot = struct;
+                sourcePlot.dim = sourcemodelDS.dim;
+                sourcePlot.unit = sourcemodelDS.unit;
+                
+                sourcePlot.(index{i}) = indexMap;
+                
+                cfg = struct;
+                cfg.parameter = index{i};
+                cfg.interpmethod = 'linear'; % default
+                sourcePlot = ft_sourceinterpolate(cfg, sourcePlot, sourcemodel);
+                
+                name = sprintf('%s_%s_%s_%s', index{i}, method{m}, SNRnames{s}, AXES{a});
+                fig = figure('Name', name);
+                cfg = struct;
+                cfg.funparameter = index{i};
+                if plotAnatomy
+                    ft_sourceplot(cfg, sourcePlot, mri)
+                else
+                    ft_sourceplot(cfg, sourcePlot)
+                end
+                print([imgPath '\' name],'-dpng')
+                if ~visualize
+                    close(fig)
+                end
+            end
+        end
+    end
+end
 end
