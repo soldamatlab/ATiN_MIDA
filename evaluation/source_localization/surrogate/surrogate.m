@@ -459,7 +459,7 @@ for m = 1:nMethod
     end
 end
 save([output '\evaluation'], 'evaluation');
-save([output '\sourcemodelDP'], 'sourcemodelDP');
+save([output '\sourcemodelDP'], 'sourcemodelDS');
 if keepMaps
     save([output '\maps'], 'maps');
 end
