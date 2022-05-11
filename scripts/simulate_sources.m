@@ -6,8 +6,8 @@ addpath_source;
 %% Paths & Config - Set manually
 % Local paths:
 %Path.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data'; % NTB
-Path.root = 'S:\BP_MIDA'; % PC-MATOUS
-%Path.root = '\\Pc-matous\bp_mida'; % PC-MATOUS remote
+%Path.root = 'S:\BP_MIDA'; % PC-MATOUS
+Path.root = '\\Pc-matous\bp_mida'; % PC-MATOUS remote
 %Path.root = 'S:\matous'; % PC-SIMON
 
 Path.data.root = [Path.root '\data'];
@@ -25,6 +25,8 @@ dataset = 'BINO';
 methods =  {'fieldtrip',      'fieldtrip',                 'mrtim'};
 layers =   [ 3,                5,                           12    ];
 suffixes = {'anatomy_prepro', 'anatomy_prepro',            ''     };
+
+simulationmodel = 'mrtim12';
 
 % Filenames:
 preproFileName = struct;
@@ -61,6 +63,7 @@ SNR = 10;
 cfgSurrogate.dipoleDownsample = 2;
 
 cfgSurrogate.allowExistingFolder = false;
+cfgSurrogate.plot = true;
 cfgSurrogate.visualize = false;
 
 finished = NaN(nSubjects, nSegmentations);
@@ -69,8 +72,9 @@ for s = 1:nSubjects
         cfgSurrogate.signal.snr = SNR(r);
         for m = 1:nSegmentations
             cfgSurrogate.modelPath = Path.(subjects(s).name).model.(segmentations{m});
+            cfgSurrogate.simulationmodel = [Path.(subjects(s).name).model.(simulationmodel) '\sourcemodel.mat'];
             cfgSurrogate.mri = Path.(subjects(s).name).mriPrepro.(segmentations{m});
-            cfgSurrogate.output = sprintf('%s%s%s', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate\', segmentations{m});
+            cfgSurrogate.output = sprintf('%s%s%s-%s_simulation', cfgSurrogate.modelPath, '\..\..\evaluation\surrogate\', segmentations{m}, simulationmodel);
 
             submoduleName = sprintf("EVALUATING SUBJECT '%s' MODEL '%s' with SNR = '%d' dB\n", subjects(s).name, segmentations{m}, SNR(r));
             finished(s,m) = run_submodule(@surrogate, cfgSurrogate, submoduleName);

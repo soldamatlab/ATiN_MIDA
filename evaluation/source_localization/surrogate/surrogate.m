@@ -22,6 +22,10 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   Config.leadfield (optional)
 %
 % Optional:
+%   Config.simulationmodel  = Sourcemodel to simulate the activity with.
+%                             By default, same model is used for simulation
+%                             and localization.
+%
 %   Config.method           = cell array with one or more from {"eloreta", "lcmv"}
 %                             default is {"eloreta"}
 %
@@ -34,6 +38,7 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   Config.waitbar          = true (default) to show waitbar with ET
 %   Config.allowExistingFolder = false (default)
 %
+%   Config.plot             = true (default)
 %   Config.mri              = for plotting
 %   Config.mriVarName       = if [Config.mri] is path to a '.mat' file
 %
@@ -66,6 +71,7 @@ NOISE_POWER = 10; % [dBW] Power of noise samples, specified as a scalar.
 
 KEEP_MAPS = false;
 PARALLEL = false;
+PLOT = true;
 VISUALIZE = true;
 VERBOSE = true;
 WAITBAR = true;
@@ -181,6 +187,20 @@ else
     check_required_field(sourcemodel, 'leadfield');
 end
 
+if isfield(Config, 'simulationmodel')
+    simulationmodel = convertStringsToChars(Config.simulationmodel);
+    if ischar(simulationmodel)
+        simulationmodel = load_var_from_mat('sourcemodel', simulationmodel);
+    end
+    check_required_field(simulationmodel, 'leadfield');
+else
+    simulationmodel = sourcemodel; % default
+end
+if ~isequal(simulationmodel.pos, sourcemodel.pos)
+    error("'simulationmodel.pos' and 'sourcemodel.pos' have to be the same.")
+end
+
+%% Plot settings
 plotAnatomy = isfield(Config, 'mri');
 if plotAnatomy % test mri path
     if isfield(Config, 'mriVarName')
@@ -190,6 +210,9 @@ if plotAnatomy % test mri path
     end
     mri = load_mri_anytype(Config.mri, mriVarName);
     clear mri
+end
+if ~isfield(Config, 'plot')
+    Config.plot = PLOT;
 end
 
 save([output '\config'], 'Config');
@@ -211,34 +234,37 @@ t = 0 : 1/fs : T - 1/fs;
 
 keepMaps = Config.keepMaps;
 parallel = Config.parallel;
+plot = Config.plot;
 visualize = Config.visualize;
 verbose = Config.verbose;
 showBar = Config.waitbar;
 
-[sourcemodelDS, keep] = downsample_sourcemodel(sourcemodel, dipoleDownsample);
-save([output '\sourcemodelDS'], 'sourcemodelDS', 'keep');
+[simulationmodelDS, keep] = downsample_sourcemodel(simulationmodel, dipoleDownsample);
+save([output '\simulationmodelDS'], 'simulationmodelDS', 'keep');
 
-dipoleIndexesDS = 1:length(sourcemodelDS.inside);
-dipoleIndexesDS = dipoleIndexesDS(sourcemodelDS.inside(dipoleIndexesDS));
+dipoleIndexesDS = 1:length(simulationmodelDS.inside);
+dipoleIndexesDS = dipoleIndexesDS(simulationmodelDS.inside(dipoleIndexesDS));
+nIndexes = length(dipoleIndexesDS);
 
-dipoleIndexes = 1:length(sourcemodel.inside);
+dipoleIndexes = 1:length(simulationmodel.inside);
 dipoleIndexes = dipoleIndexes(keep);
-dipoleIndexes = dipoleIndexes(sourcemodel.inside(dipoleIndexes));
-nDipoleIndexes = length(dipoleIndexes);
+dipoleIndexes = dipoleIndexes(simulationmodel.inside(dipoleIndexes));
+if length(dipoleIndexes) ~= length(dipoleIndexesDS)
+    error('length(dipoleIndexes) ~= length(dipoleIndexesDS)' )
+end
 
 method = check_methods(method, SUPPORTED_METHODS);
 nMethod = length(method);
 
 nAXES = length(AXES);
 
-% TODO make evaluation init into a function
 evaluation = struct;
 evaluation.dipoleIndexes = make_column(dipoleIndexes);
 evaluation.dipoleIndexesDS = make_column(dipoleIndexesDS);
 for s = 1:nSNR
     for m = 1:nMethod
-        evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nDipoleIndexes, nAXES);
-        evaluation.(method{m}).(SNRnames{s}).ed2 = NaN(nDipoleIndexes, nAXES);
+        evaluation.(method{m}).(SNRnames{s}).ed1 = NaN(nIndexes, nAXES);
+        evaluation.(method{m}).(SNRnames{s}).ed2 = NaN(nIndexes, nAXES);
     end
 end
 
@@ -246,9 +272,9 @@ if keepMaps
     sourceTemplate = get_source_template(sourcemodel);
     maps = struct;
     for s = 1:nSNR
-        maps.truth.(SNRnames{s}) = cell(nDipoleIndexes, 1);
+        maps.truth.(SNRnames{s}) = cell(nIndexes, 1);
         for m = 1:nMethod
-            maps.(method{m}).(SNRnames{s}) = cell(nDipoleIndexes, nAXES);
+            maps.(method{m}).(SNRnames{s}) = cell(nIndexes, nAXES);
         end
     end
 end
@@ -256,13 +282,13 @@ end
 %% Run
 if showBar
     bar = 0;
-    barMax = nSNR * nDipoleIndexes;
+    barMax = nSNR * nIndexes;
     figBar = waitbar(bar/barMax, {['Computed: 0 / ' num2str(barMax)], 'Estimated Time Remaining: TBD'},...
         'Name', 'Surrogate Source Localization');
 end
 
 for s = 1:nSNR
-    for d = 1:nDipoleIndexes
+    for d = 1:nIndexes
         if showBar
             iterationStart = tic;
         end
@@ -275,7 +301,7 @@ for s = 1:nSNR
             maps.truth.(SNRnames{s}){d} = sourcemap;
         end
         
-        dipoleLeadfield = sourcemodel.leadfield{1, dipoleIndexes(d)};
+        dipoleLeadfield = simulationmodel.leadfield{1, dipoleIndexes(d)};
         potencial = struct;
         for a = 1:nAXES
             potencial.(AXES{a}) = dipoleLeadfield(:,a)*signal;
@@ -471,6 +497,10 @@ cfg.save = [output '\evaluation_table'];
 evaluationTable = plot_evaluation_table(cfg, evaluation);
 
 %% Plot Results on MRI
+if ~plot
+    return
+end
+
 if plotAnatomy
     mri = load_mri_anytype(Config.mri, mriVarName);
 end
@@ -481,13 +511,13 @@ for i = 1:length(index)
             for a = 1:nAXES
                 %%
                 indexValues = evaluation.(method{m}).(SNRnames{s}).(index{i});
-                indexMap = zeros(length(sourcemodelDS.inside), 1);
+                indexMap = zeros(length(simulationmodelDS.inside), 1);
                 indexMap(dipoleIndexesDS) = indexValues(:,a);
                 %%
                 sourcePlot = struct;
-                sourcePlot.dim = sourcemodelDS.dim;
-                sourcePlot.pos = sourcemodelDS.pos;
-                sourcePlot.unit = sourcemodelDS.unit;
+                sourcePlot.dim = simulationmodelDS.dim;
+                sourcePlot.pos = simulationmodelDS.pos;
+                sourcePlot.unit = simulationmodelDS.unit;
                 sourcePlot.(index{i}) = indexMap;
                 %%
                 name = sprintf('%s_%s_%s_%s', index{i}, method{m}, SNRnames{s}, AXES{a});
@@ -503,7 +533,7 @@ for i = 1:length(index)
                 cfg.visualize = visualize;
                 plot_source(cfg, sourcePlot);
                 %%
-                sourcePlot.inside = sourcemodelDS.inside;
+                sourcePlot.inside = simulationmodelDS.inside;
                 %%
                 cfg.name = name;
                 cfg.save = [imgPath '\' cfg.name];
