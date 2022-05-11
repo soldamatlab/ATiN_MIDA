@@ -318,16 +318,21 @@ for s = 1:nSNR
         cfg.keeptrials       = 'no';
         cfg.vartrllength     = 2;
         timelock = cell(nAXES, 1);
-        lcmvLambdas = NaN(1, nAXES);
+        
+        
         for a = 1:nAXES
             timelock{a} = ft_timelockanalysis(cfg, data.(AXES{a})); % TODO read doc
-            lcmvLambdas(a) = 0.003*max(eig(timelock{a}.cov)); % TODO study
         end
         
         %% Source Analysis - Solve
         source = struct;        
         %% LCMV (Linear Constrained Minimal Variance) % ! NOT TESTED, NOT OPTIMIZED
         if ismember(LCMV, method)
+            lcmvLambdas = NaN(1, nAXES);
+            for a = 1:nAXES
+                lcmvLambdas(a) = 0.003*max(eig(timelock{a}.cov)); % TODO study
+            end
+            
             cfg                   = struct;
             cfg.method            = 'lcmv';
             cfg.sourcemodel       = sourcemodel;
@@ -502,6 +507,7 @@ for i = 1:length(index)
                 fig = figure('Name', name);
                 cfg = struct;
                 cfg.funparameter = index{i};
+                cfg.crosshair = 'no';
                 if plotAnatomy
                     ft_sourceplot(cfg, sourcePlot, mri)
                 else
