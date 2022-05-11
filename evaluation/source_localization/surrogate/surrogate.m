@@ -45,7 +45,7 @@ function [evaluation, evaluationTable] = surrogate(Config)
 %   Config.signal.noisePower= [dBW] power of noise samples, specified as a scalar
 %
 % eLORETA defaults:
-%   Config.eloreta.lambdas  = [10753.1834949415	0.257843673057386	0.0739440420798500	0.00769461295275684];
+%   Config.eloreta.lambdas  = 0.05 for all SNRs
 %                             
 
 %% Constants
@@ -53,11 +53,10 @@ ELORETA = 'eloreta';
 LCMV = 'lcmv';
 SUPPORTED_METHODS = {ELORETA, LCMV};
 METHOD = {ELORETA};
+ELORETA_LAMBDA = 0.05;
 
 AXES = {'x', 'y', 'z'};
 DIPOLE_DOWNSAMPLE = 1; % 1 for no downsample, 'x' for every 'x'th dipole
-ELORETA_SUPPORTED_SNR = [5 10 15 25]; % each SNR needs a lambda
-ELORETA_LAMBDAS = [10753.1834949415, 0.257843673057386, 0.0739440420798500, 0.00769461295275684];
 
 SNR = 10; % Signal to Noise Ratio
 T = 1; % [s] signal duration
@@ -111,6 +110,7 @@ else
         Config.signal.noisePower = NOISE_POWER;
     end
 end
+nSNR = length(Config.signal.snr);
 
 %% Config - Method
 if isfield(Config, 'method')
@@ -124,13 +124,8 @@ if ~isfield(Config, 'dipoleDownsample')
 end
 if ismember(ELORETA, Config.method)
     if ~isfield(Config, 'eloreta') || ~isfield(Config.eloreta, 'lambdas')
-        for s = 1:length(Config.signal.snr)
-            if ~ismember(Config.signal.snr(s), ELORETA_SUPPORTED_SNR)
-                error("Default eLORETA lambdas are only defined for SNR = [5, 10, 15, 25]. Choose one of default SNRs or define eLORETA lambdas for each used SNR (in the same order) in 'Config.eloreta.lambdas'.")
-            else
-                Config.eloreta.lambdas(s) = ELORETA_LAMBDAS(Config.signal.snr(s) == ELORETA_SUPPORTED_SNR);
-            end
-        end
+        Config.eloreta.lambdas = NaN(1, nSNR);
+        Config.eloreta.lambdas(:) = ELORETA_LAMBDA;
     end
 end
 
@@ -207,10 +202,12 @@ if ismember(ELORETA, method)
 end
 
 SNR = Config.signal.snr;
+SNRnames = generate_snr_names(SNR);
 T = Config.signal.T;
 %T_seg = Config.signal.Tseg;
 fs = Config.signal.fs;
 noisePower = Config.signal.noisePower;
+t = 0 : 1/fs : T - 1/fs;
 
 keepMaps = Config.keepMaps;
 parallel = Config.parallel;
@@ -219,6 +216,7 @@ verbose = Config.verbose;
 showBar = Config.waitbar;
 
 [sourcemodelDS, keep] = downsample_sourcemodel(sourcemodel, dipoleDownsample);
+save([output '\sourcemodelDS'], 'sourcemodelDS', 'keep');
 
 dipoleIndexesDS = 1:length(sourcemodelDS.inside);
 dipoleIndexesDS = dipoleIndexesDS(sourcemodelDS.inside(dipoleIndexesDS));
@@ -231,12 +229,7 @@ nDipoleIndexes = length(dipoleIndexes);
 method = check_methods(method, SUPPORTED_METHODS);
 nMethod = length(method);
 
-SNRnames = generate_snr_names(SNR);
-nSNR = length(SNR);
-
 nAXES = length(AXES);
-
-t = 0 : 1/fs : T - 1/fs;
 
 % TODO make evaluation init into a function
 evaluation = struct;
@@ -464,7 +457,6 @@ for m = 1:nMethod
     end
 end
 save([output '\evaluation'], 'evaluation');
-save([output '\sourcemodelDS'], 'sourcemodelDS');
 if keepMaps
     save([output '\maps'], 'maps');
 end
@@ -478,7 +470,6 @@ cfg.verbose = verbose;
 cfg.save = [output '\evaluation_table'];
 evaluationTable = plot_evaluation_table(cfg, evaluation);
 
-return
 %% Plot Results on MRI
 if plotAnatomy
     mri = load_mri_anytype(Config.mri, mriVarName);
@@ -488,35 +479,35 @@ for i = 1:length(index)
     for m = 1:nMethod
         for s = 1:nSNR
             for a = 1:nAXES
+                %%
                 indexValues = evaluation.(method{m}).(SNRnames{s}).(index{i});
                 indexMap = zeros(length(sourcemodelDS.inside), 1);
                 indexMap(dipoleIndexesDS) = indexValues(:,a);
-                
+                %%
                 sourcePlot = struct;
                 sourcePlot.dim = sourcemodelDS.dim;
+                sourcePlot.pos = sourcemodelDS.pos;
                 sourcePlot.unit = sourcemodelDS.unit;
-                
                 sourcePlot.(index{i}) = indexMap;
-                
+                %%
+                name = sprintf('%s_%s_%s_%s', index{i}, method{m}, SNRnames{s}, AXES{a});
                 cfg = struct;
                 cfg.parameter = index{i};
-                cfg.interpmethod = 'linear'; % default
-                sourcePlot = ft_sourceinterpolate(cfg, sourcePlot, sourcemodel);
-                
-                name = sprintf('%s_%s_%s_%s', index{i}, method{m}, SNRnames{s}, AXES{a});
-                fig = figure('Name', name);
-                cfg = struct;
-                cfg.funparameter = index{i};
-                cfg.crosshair = 'no';
+                cfg.crosshair = 'no'; % default
+                cfg.location = 'center';
                 if plotAnatomy
-                    ft_sourceplot(cfg, sourcePlot, mri)
-                else
-                    ft_sourceplot(cfg, sourcePlot)
+                    cfg.mri = mri;
                 end
-                print([imgPath '\' name],'-dpng')
-                if ~visualize
-                    close(fig)
-                end
+                cfg.name = [name '_interp'];
+                cfg.save = [imgPath '\' cfg.name];
+                cfg.visualize = visualize;
+                plot_source(cfg, sourcePlot);
+                %%
+                sourcePlot.inside = sourcemodelDS.inside;
+                %%
+                cfg.name = name;
+                cfg.save = [imgPath '\' cfg.name];
+                plot_source(cfg, sourcePlot);
             end
         end
     end
