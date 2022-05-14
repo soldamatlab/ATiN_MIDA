@@ -88,7 +88,7 @@ for s = 1:nSubjects
         cfg.headmodel = load_var_from_mat(HEADMODEL_VAR_NAME, [modelPath '\' HEADMODEL_FILE_NAME]);
         
         mriPath = Path.(subjects(s).name).mriPrepro.(segmentations{m});
-        cfg.mri = load_var_from_mat(PREPRO_VAR_NAME, mriPath);
+        cfg.mri = load_mri_anytype(mriPath, PREPRO_VAR_NAME);
         
         cfg.output = sprintf('%s%s%s', modelPath, '\..\..\evaluation\stimulation\', segmentations{m});
 
