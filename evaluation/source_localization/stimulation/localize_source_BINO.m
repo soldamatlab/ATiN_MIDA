@@ -24,6 +24,7 @@ function [sourceHouses, sourceFaces] = localize_source_BINO(Config)
 %                         = 'all' to use all present channels
 %                         = [1:256] by default
 %
+%   Config.plot           = true (default)
 %   Config.mri            = for plotting
 %   Config.visualize      = true (default)
 %
@@ -40,6 +41,7 @@ HOUSES_FREQUENCY = 6.67; % [Hz]
 
 FREQUENCY_HALF_MARGIN = 0.8; % [Hz]
 
+PLOT = true;
 VISUALIZE = true;
 ALLOW_EXISTING_FOLDER = false;
 
@@ -62,6 +64,9 @@ if ~isfield(Config, 'rereference')
     Config.rereference = 'avg';
 end
 
+if ~isfield(Config, 'plot')
+    Config.plot = PLOT;
+end
 if ~isfield(Config, 'visualize')
     Config.visualize = VISUALIZE;
 end
@@ -187,6 +192,9 @@ evaluation.(ELORETA).faces.map = sourceFaces.avg.pow;
 save([output '\evaluation'], 'evaluation');
 
 %% Plot
+if ~Config.plot
+    return
+end
 source = {sourceHouses, sourceFaces};
 sourceNames = {'houses', 'faces'};
 if plotAnatomy

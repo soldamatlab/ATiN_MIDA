@@ -28,7 +28,7 @@ suffixes = {'anatomy_prepro', 'anatomy_prepro',            ''     };
 
 simulationmodel = 'mrtim12';
 
-% Filenames:
+%% Filenames
 preproFileName = struct;
 preproFileName.fieldtrip = 'mri_prepro.mat';
 preproFileName.mrtim = 'anatomy_prepro.nii';
@@ -55,7 +55,7 @@ for s = 1:nSubjects
     end
 end
 
-%% Prepare models
+%% Simulate & localize sources
 cfgSurrogate = struct;
 
 cfgSurrogate.method = 'eloreta';
