@@ -26,8 +26,10 @@ mriPrepro = load_mri_anytype(mriPreproPath, 'mriPrepro');
 
 %% Config
 cfg = struct;
-cfg.output = [modelPath '\..\..\evaluation\stimulate'];
+cfg.output = [modelPath '\..\..\evaluation\stimulation\' segMethod];
 
+cfg.data = data;
+cfg.events = events;
 cfg.sourcemodel = sourcemodel;
 cfg.headmodel = headmodel;
 cfg.mri = mriPrepro;
@@ -36,4 +38,4 @@ cfg.channel = 1:256;
 cfg.rereference = 'avg';
 
 %% Run
-localize_source(cfg, data, events);
+localize_source(cfg);

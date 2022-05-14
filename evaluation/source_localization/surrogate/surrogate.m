@@ -2,6 +2,9 @@ function [evaluation, evaluationTable] = surrogate(Config)
 % SURROGATE evaluates source-loaclization capability of a head model with
 % generated white gaussian signal.
 %
+% Plotting seems to be working on MATLAB R2021a but not on MATLAB R2022a.
+% Run with 'Config.plot = false' to disable plotting if it causes issues.
+%
 % Adapted code from ATiN RATESI Frontiers2021 project by Stanislav Jiricek.
 % Matous Soldat, 2022
 %

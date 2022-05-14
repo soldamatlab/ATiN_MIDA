@@ -1,4 +1,4 @@
-function [sourceHouses, sourceFaces] = localize_source_BINO(Config, data, events)
+function [sourceHouses, sourceFaces] = localize_source_BINO(Config)
 % LOCALIZE_SOURCE_BINO
 % localize_source_BINO will re-reference eeg data to average if 'VREF' or 'EREF'
 % (case ignored) is found in 'eegData.label'. Otherwise, egg data are
@@ -6,6 +6,8 @@ function [sourceHouses, sourceFaces] = localize_source_BINO(Config, data, events
 %
 % Required:
 %   Config                = struct
+%   Config.data
+%   Config.events
 %   Config.sourcemodel    = struct, has to include field 'leadfield'
 %   Config.headmodel
 %   Config.output
@@ -36,10 +38,12 @@ T_EVENT = 5; % [s]
 FACES_FREQUENCY = 8.57; % [Hz]
 HOUSES_FREQUENCY = 6.67; % [Hz]
 
-FREQUENCY_HALF_MARGIN = 1; % [Hz]
+FREQUENCY_HALF_MARGIN = 0.8; % [Hz]
 
 VISUALIZE = true;
 ALLOW_EXISTING_FOLDER = false;
+
+MRI_VAR_NAME = 'mriPrepro';
 
 %% Check Config
 check_required_field(Config, 'output');
@@ -62,15 +66,27 @@ if ~isfield(Config, 'visualize')
     Config.visualize = VISUALIZE;
 end
 
-%% Check data
-check_required_field(data, 'trial');
-check_required_field(data, 'time');
+%% Load data from Config
+check_required_field(Config, 'data');
+check_required_field(Config, 'events');
+check_required_field(Config.data, 'trial');
+check_required_field(Config.data, 'time');
+data = Config.data;
+events = Config.events;
 
-%% Check models
+%% Load models from Config
 check_required_field(Config, 'sourcemodel');
-check_required_field(Config.sourcemodel, 'leadfield');
+sourcemodel = Config.sourcemodel;
+check_required_field(sourcemodel, 'leadfield');
+
 check_required_field(Config, 'headmodel');
-if ~(isfield(Config, 'elec') || isfield(headmodel, 'elec'))
+headmodel = Config.headmodel;
+
+if isfield(Config, 'elec')
+    elec = Config.elec;
+elseif isfield(headmodel, 'elec')
+    elec = headmodel.elec;
+else
     error("Include elec structure in 'Config.elec' or 'headmodel.elec'.")
 end
 
@@ -82,8 +98,22 @@ if plotAnatomy % test mri path
         mriVarName = MRI_VAR_NAME;
     end
     mri = load_mri_anytype(Config.mri, mriVarName);
-    clear mri
 end
+
+%% Save Config
+Config.data = rm_field_data(Config.data, 'trial', 'trial');
+Config.data = rm_field_data(Config.data, 'time', 'time');
+Config = rm_field_data(Config, 'events', 'events');
+Config = rm_field_data(Config, 'sourcemodel', 'sourcemodel');
+Config = rm_field_data(Config, 'headmodel', 'headmodel');
+if isfield(Config, 'elec')
+    Config = rm_field_data(Config, 'elec', 'elec');
+end
+Config.mri = convertCharsToStrings(Config.mri);
+if plotAnatomy && ~isstring(Config.mri)
+    Config = rm_field_data(Config, 'mri', 'mri');
+end
+save([output '\config'], 'Config');
 
 %% Pick channels
 if ischar(Config.channel)
@@ -139,14 +169,10 @@ timelockFaces = ft_timelockanalysis(cfg, dataFaces);
 %% Solve eLORETA
 cfg                    = [];
 cfg.method             = 'eloreta';
-cfg.grid               = Config.sourcemodel;
-cfg.headmodel          = Config.headmodel;
+cfg.grid               = sourcemodel;
+cfg.headmodel          = headmodel;
 cfg.eloreta.lambda     = ELORETA_LAMBDA;
-if isfield(Config, 'elec')
-    cfg.elec = Config.elec;
-else
-    cfg.elec = headmodel.elec;
-end
+cfg.elec               = elec;
 cfg.keeptrials         = 'no';
 cfg.eloreta.keepfilter = 'no';
 cfg.eloreta.keepmom    = 'no';
@@ -161,29 +187,43 @@ evaluation.(ELORETA).faces.map = sourceFaces.avg.pow;
 save([output '\evaluation'], 'evaluation');
 
 %% Plot
-% TODO plot:
-% ft_sourceplot, pro kazdy subjekt zprumerovany plot a pak pro vsechny
-% subjekty prumer
 source = {sourceHouses, sourceFaces};
 sourceNames = {'houses', 'faces'};
 if plotAnatomy
-    mri = load_mri_anytype(Config.mri, mriVarName);
+    mri = load_mri_anytype(mri, mriVarName);
 end
 for s = 1:length(source)
     source{s}.pow = source{s}.avg.pow;
+    source{s}.pow(isnan(source{s}.pow)) = 0;
+    source{s} = rmfield(source{s}, 'avg');
     
     name = sprintf('source_%s', sourceNames{s});
-    fig = figure('Name', name);
     cfg = struct;
-    cfg.funparameter = 'pow';
-    cfg.crosshair = 'no';
+    cfg.parameter = 'pow';
+    cfg.crosshair = 'no'; % default
     if plotAnatomy
-        ft_sourceplot(cfg, source{s}, mri)
-    else
-        ft_sourceplot(cfg, source{s})
+        cfg.mri = mri;
     end
-    print([imgPath '\' name],'-dpng')
-    if ~Config.visualize
-        close(fig)
+    cfg.name = name;
+    cfg.save = [imgPath '\' cfg.name];
+    cfg.visualize = Config.visualize;
+    plot_source(cfg, source{s});
+    cfg.name = [cfg.name '_center'];
+    cfg.save = [imgPath '\' cfg.name];
+    cfg.location = 'center';
+    plot_source(cfg, source{s});
+    %%
+    if ~plotAnatomy
+        continue
     end
+    %%
+    source{s} = rmfield(source{s}, 'inside');
+    cfg = rmfield(cfg, 'location');
+    cfg.name = [name '_interp'];
+    cfg.save = [imgPath '\' cfg.name];
+    plot_source(cfg, source{s});
+    cfg.name = [cfg.name '_center'];
+    cfg.save = [imgPath '\' cfg.name];
+    cfg.location = 'center';
+    plot_source(cfg, source{s});
 end
