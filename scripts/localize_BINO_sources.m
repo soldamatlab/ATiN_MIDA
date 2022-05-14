@@ -79,18 +79,22 @@ cfg.visualize = false;
 finished = NaN(nSubjects, nSegmentations);
 for s = 1:nSubjects
     for m = 1:nSegmentations
+        modelPath = Path.(subjects(s).name).model.(segmentations{m});
+        cfg.output = sprintf('%s%s%s', modelPath, '\..\..\evaluation\stimulation\', segmentations{m});
+        if exist(cfg.output, 'dir')
+            warning("Folder '%s' already exists.\n Skipping subject '%s' model '%s'.", cfg.output, subjects(s).name, segmentations{m})
+            continue
+        end
+        
         load(Path.(subjects(s).name).data); % inits vars 'data' and 'events'
         cfg.data = data;
         cfg.events = events;
         
-        modelPath = Path.(subjects(s).name).model.(segmentations{m});
         cfg.sourcemodel = load_var_from_mat(SOURCEMODEL_VAR_NAME, [modelPath '\' SOURCEMODEL_FILE_NAME]);
         cfg.headmodel = load_var_from_mat(HEADMODEL_VAR_NAME, [modelPath '\' HEADMODEL_FILE_NAME]);
         
         mriPath = Path.(subjects(s).name).mriPrepro.(segmentations{m});
         cfg.mri = load_mri_anytype(mriPath, PREPRO_VAR_NAME);
-        
-        cfg.output = sprintf('%s%s%s', modelPath, '\..\..\evaluation\stimulation\', segmentations{m});
 
         submoduleName = sprintf("LOCALIZING SOURCES OF SUBJECT '%s' WITH MODEL '%s'", subjects(s).name, segmentations{m});
         finished(s,m) = run_submodule(@localize_source_BINO, cfg, submoduleName);
