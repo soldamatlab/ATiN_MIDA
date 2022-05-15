@@ -1,15 +1,22 @@
 function [fig] = plot_segmentation(Config, segmentation, anatomy)
 % PLOT_SEGMENTATION
-% Options:
-% Config.colormap
-%  or
-% Config.method & Config.nLayres - to set colormap from const_color.m
+% Required:
+%   segmentation
 %
-% Config.location
-% Config.crosshair
-% Config.visualize
-% Config.name
-% Config.save - string or array of strings (for multiple saves)
+% Optional:
+%   anatomy
+%
+% Optional Config:
+%   Config.colormap
+%  or
+%   Config.method & Config.nLayres - to set colormap from const_color.m
+%
+%   Config.plotmethod
+%   Config.location
+%   Config.crosshair
+%   Config.visualize
+%   Config.name
+%   Config.save - string or array of strings (for multiple saves)
 
 %% Defaults
 visualize = true;
@@ -23,6 +30,9 @@ cfg.funcolormap  = lines;
 if isfield(Config, 'visualize')
     visualize = Config.visualize;
 end
+if isfield(Config, 'plotmethod')
+    cfg.method = Config.plotmethod;
+end
 if isfield(Config, 'location')
     cfg.location = Config.location;
 end
@@ -32,7 +42,8 @@ end
 if isfield(Config, 'colormap')
     cfg.funcolormap = Config.colormap;
 elseif isfield(Config, 'method') && isfield(Config, 'nLayers')
-    cfg.funcolormap = get_colrmap(Config);
+    cfg.funcolormap = get_colormap(Config);
+    cfg.colormap = cfg.funcolormap;
 else
     warning("Add 'Config.colormap' parameter. Using default color map - some layers may have the same color.")
 end
