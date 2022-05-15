@@ -5,10 +5,8 @@ addpath_source;
 
 %% Paths & Config - Set manually
 % Local paths:
-%Path.root = 'C:\Users\matou\Documents\MATLAB\BP_MIDA\data'; % NTB
 Path.root = 'S:\BP_MIDA'; % PC-MATOUS
 %Path.root = '\\Pc-matous\bp_mida'; % PC-MATOUS remote
-%Path.root = 'S:\matous'; % PC-SIMON
 
 Path.data.root = [Path.root '\data'];
 Path.data.NUDZ = [Path.data.root '\MR'];
