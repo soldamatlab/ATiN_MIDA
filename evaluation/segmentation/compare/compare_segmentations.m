@@ -131,7 +131,7 @@ if isfield(Config, 'omit')
     cfg.omit = Config.omit;
 end
 
-cfg.title = 'Spacial Overlap index';
+cfg.title = 'Spatial Overlap index';
 cfg.save = [imgPath '\spatial_overlap'];
 plot_index(cfg, Result.spatialOverlap);
 
