@@ -76,21 +76,38 @@ cfg.seg.prepro = prepro2;
 cfg.seg.method = Config.seg2.method;
 cfg.target.prepro = prepro1;
 cfg.target.method = Config.seg1.method;
+cfg.visualize = false;
+if isfield(Config, 'noFlip')
+    cfg.noFlip = Config.noFlip;
+end
+%cfg.visualize = visualize;
+%cfg.save = [imgPath '\' seg2name '_on_' seg1name '_anatomy'];
+%cfg.name = [seg2name ' segmentation on ' seg1name ' anatomy'];
+%if isfield(Config.seg2, 'colormap')
+%    cfg.colormap = Config.seg2.colormap;
+%elseif isfield(Config, 'colormap')
+%    cfg.colormap = Config.colormap;
+%end
+[prepro2, segmentation2] = align_segmented_mri(cfg);
+
+%% Interpolate tissue meshes to match
+segmentation2 = interpolate_tissue(Config.seg2, segmentation2, segmentation1);
+
+%% Visualize Aligned & Interpolated MRI
+cfg = struct;
 cfg.visualize = visualize;
 cfg.save = [imgPath '\' seg2name '_on_' seg1name '_anatomy'];
 cfg.name = [seg2name ' segmentation on ' seg1name ' anatomy'];
+if isfield(Config, 'colormap')
+    cfg.colormap = Config.colormap;
+end
 if isfield(Config.seg2, 'colormap')
     cfg.colormap = Config.seg2.colormap;
 elseif isfield(Config, 'colormap')
     cfg.colormap = Config.colormap;
 end
-if isfield(Config, 'noFlip')
-    cfg.noFlip = Config.noFlip;
-end
-[prepro2, segmentation2] = align_segmented_mri(cfg);
-
-%% Interpolate tissue meshes to match
-segmentation2 = interpolate_tissue(Config.seg2, segmentation2, segmentation1);
+cfg.visualize = visualize;
+plot_segmentation(cfg, segmentation2, prepro1);
 
 %% Join + re-number layers to match
 [segmentation1, segmentation2] = match_layers(Config, segmentation1, segmentation2);

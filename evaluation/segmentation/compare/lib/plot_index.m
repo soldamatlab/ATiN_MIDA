@@ -60,12 +60,14 @@ if isfield(Config, 'visualize')
 end
 
 %% Plot
+data = round(data, 3);
 fig = figure();
 if isfield(Config, 'label')
-    heatmap(Config.label, Config.label, data)
+    h = heatmap(Config.label, Config.label, data);
 else
-    heatmap(data)
+    h = heatmap(data);
 end
+%h.FontSize = 15;
 caxis([0 1])
 xlabel(method1)
 ylabel(method2)
