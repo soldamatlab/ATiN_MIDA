@@ -46,7 +46,7 @@ end
 
 %% Align maps
 finished = [];
-for s = 3:nSubjects
+for s = 1:nSubjects
     mriPrepro = Path.(subjects(s).name).mriPrepro;
     evals = Path.(subjects(s).name).surrogate.evals;
     nEvals = length(evals);
