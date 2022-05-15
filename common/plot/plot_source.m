@@ -8,6 +8,7 @@ function [fig] = plot_source(Config, source)
 %
 % Optional:
 %   Config.mri       = add mri to plot sources on
+%   Config.method
 %   Config.visualize = true (default)
 %   Config.name
 %   Config.save      = filepath as string, set to save figure
@@ -35,6 +36,9 @@ cfg = struct;
 cfg.funparameter = Config.parameter;
 cfg.crosshair = Config.crosshair;
 cfg.visible = Config.visible;
+if isfield(Config, 'method')
+    cfg.method = Config.method;
+end
 if isfield(Config, 'location')
     cfg.location = Config.location;
 end
