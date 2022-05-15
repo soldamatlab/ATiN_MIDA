@@ -41,6 +41,7 @@ seg(mriSegmented.(MRTIM_12_LABEL{11})) = 6;
 truth(groundTruth.(SCI_LABEL{1})) = 6;
 
 % sinus
+seg(groundTruth.(SCI_LABEL{5})) = 7; % ! uncomment to stop indexes from penalizing for sinus
 truth(groundTruth.(SCI_LABEL{5})) = 7;
 
 % background
