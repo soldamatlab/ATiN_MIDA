@@ -81,12 +81,12 @@ end
 %% Create mean maps
 % Change manually: --------------------------------------------------------
 mapNames = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
-evalName = cell(4,1);
+evalName = cell(5,1);
 evalName{1} = 'fieldtrip3_anatomy_prepro-fieldtrip3_anatomy_prepro_simulation';
 evalName{2} = 'fieldtrip5_anatomy_prepro-fieldtrip5_anatomy_prepro_simulation';
 evalName{3} = 'fieldtrip3_anatomy_prepro-mrtim12_simulation';
-%evalName{4} = 'fieldtrip5_anatomy_prepro-mrtim12_simulation';
-evalName{4} = 'mrtim12-mrtim12_simulation';
+evalName{4} = 'fieldtrip5_anatomy_prepro-mrtim12_simulation';
+evalName{5} = 'mrtim12-mrtim12_simulation';
 
 for e = 1:length(evalName)
     outputPath = [Path.root '\results\surrogate\' dataset '\' evalName{e}];
