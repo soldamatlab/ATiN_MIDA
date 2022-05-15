@@ -16,6 +16,7 @@ function [sourceInterp] = align_map(Config)
 %   Config.output
 %   Config.plot
 %   Config.visualize
+%   Config.visible
 %   Config.allowExistingFolder
 %
 %   Config.mriPreproVarName
@@ -25,6 +26,7 @@ function [sourceInterp] = align_map(Config)
 %% Constants
 PLOT = false;
 VISUALIZE = true;
+VISIBLE = true;
 ALLOW_EXISTING_FOLDER = false;
 
 SOURCEMODEL_VAR_NAME = 'sourcemodel';
@@ -39,6 +41,11 @@ if ~isfield(Config, 'visualize')
     Config.visualzie = VISUALIZE;
 end
 visualize = Config.visualize;
+
+if ~isfield(Config, 'visible')
+    Config.visible = VISIBLE;
+end
+visible = Config.visible;
 
 if ~isfield(Config, 'allowExistingFolder')
     Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
@@ -164,6 +171,7 @@ cfg.crosshair = 'no'; % default
 cfg.location = 'center';
 cfg.mri = mriTarget;
 cfg.visualize = visualize;
+cfg.visible = visible;
 for m = 1:nMaps
     for a = 1:nAxis
         param = parameters{((m-1)*nAxis) + a};
