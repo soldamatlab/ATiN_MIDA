@@ -63,7 +63,7 @@ for s = 1:nSubjects
         cfg.output = [evalPath '\aligned'];
         cfg.plot = true;
         cfg.visualize = false;
-        cfg.allowExistingFolder = true;
+        cfg.allowExistingFolder = false;
         
         submoduleName = sprintf("ALIGNING SUBJECT '%s' SIMULATION '%s'\n", subjects(s).name, evals(e).name);
         ret = run_submodule(@align_map, cfg, submoduleName);
