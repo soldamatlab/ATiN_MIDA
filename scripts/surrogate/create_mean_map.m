@@ -25,7 +25,7 @@ dataset = 'NUDZ';
 
 % common mri to align all maps to:
 Path.mriTarget.NUDZ = '\\PC-matous\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\mri_common.mat';
-Path.mriTarget.BINO = ''; % TODO
+Path.mriTarget.BINO = '\\PC-matous\BP_MIDA\analysis\BINO\S01\mri_common.mat';
 MRI_TARGET_VAR_NAME = 'mriCommon';
 
 %% Get subject paths
