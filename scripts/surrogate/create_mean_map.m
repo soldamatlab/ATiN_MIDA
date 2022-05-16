@@ -79,35 +79,37 @@ for s = 1:nSubjects
 end
 
 %% Create mean maps
-% Change manually: --------------------------------------------------------
+% Set manually: -----------------------------------------------------------
 mapNames = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
+nMapNames = length(mapNames);
+fields = {'mean' 'std'};
+nFields = length(fields);
 evalName = cell(5,1);
 evalName{1} = 'fieldtrip3_anatomy_prepro-fieldtrip3_anatomy_prepro_simulation';
 evalName{2} = 'fieldtrip5_anatomy_prepro-fieldtrip5_anatomy_prepro_simulation';
 evalName{3} = 'fieldtrip3_anatomy_prepro-mrtim12_simulation';
 evalName{4} = 'fieldtrip5_anatomy_prepro-mrtim12_simulation';
 evalName{5} = 'mrtim12-mrtim12_simulation';
-
+% -------------------------------------------------------------------------
+%% Run
 for e = 1:length(evalName)
     outputPath = [Path.root '\results\surrogate\' dataset '\' evalName{e}];
     [outputPath, imgPath] = create_output_folder(outputPath, false);
-    % -------------------------------------------------------------------------
     map = struct;
 
     %% Gather aligned maps
     data = struct;
-    nMapNames = length(mapNames);
     for s = 1:nSubjects
         evalDir = [Path.(subjects(s).name).surrogate.root '\' evalName{e}];
         sourcePath = [evalDir '\aligned\source_interp.mat'];
         source = load_var_from_mat('sourceInterp', sourcePath);
 
         if s == 1
-            map.anatomy = source.anatomy;
-            map.coordsys = source.coordsys;
-            map.dim = source.dim;
+            map.anatomy   = source.anatomy;
+            map.coordsys  = source.coordsys;
+            map.dim       = source.dim;
             map.transform = source.transform;
-            map.unit = source.unit;
+            map.unit      = source.unit;
 
             for m = 1:nMapNames
                 data.(mapNames{m}) = NaN([map.dim nSubjects]);
@@ -149,32 +151,105 @@ for e = 1:length(evalName)
     cfg.visualize = false;
 
     for m = 1:nMapNames    
-        %% Plot Mean map
-        map.tmp = map.(mapNames{m}).mean;
-        cfg.name = [mapNames{m} '_mean'];
-        cfg.save = [imgPath '\' cfg.name];
-        plot_source(cfg, map);
+        for f = 1:nFields
+            map.tmp = map.(mapNames{m}).(fields{f});
+            cfg.name = ['slice_' mapNames{m} '_' fields{f}];
+            cfg.save = [imgPath '\' cfg.name];
+            plot_source(cfg, map);
+        end
+    end
+    
+    cfg.method = 'slice';
+    for m = 1:nMapNames       
+        for f = 1:nFields
+            map.tmp = map.(mapNames{m}).(fields{f});
+            cfg.name = ['slice_' mapNames{m} '_' fields{f}];
+            cfg.save = [imgPath '\' cfg.name];
+            plot_source(cfg, map);
+        end
+    end
+    
+    map = rmfield(map, 'tmp');
+end
 
-        %% Plot STD map
-        map.tmp = map.(mapNames{m}).std;
-        cfg.name = [mapNames{m} '_std'];
-        cfg.save = [imgPath '\' cfg.name];
-        plot_source(cfg, map);
+%% Calculate Differences (12-3)-(12-12) & (12-5)-(12-12)
+% 'Path.root' and 'dataset' have to be initialized.
+%
+% 'Path.mriTarget.(dataset)' and 'MRI_TARGET_VAR_NAME' have to be
+% initialized for plotting.
+% Set manually: -----------------------------------------------------------
+output = [Path.root '\results\surrogate\' dataset];
+
+mapNames = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
+nMapNames = length(mapNames);
+fields = {'mean' 'std'};
+nFields = length(fields);
+
+abv = cell(1);
+abv{1} = 'f3';
+abv{2} = 'f5';
+abv{3} = 'm12';
+nAbv = length(abv);
+
+Name = struct;
+Name.(abv{1}) = 'fieldtrip3_anatomy_prepro-mrtim12_simulation';
+Name.(abv{2}) = 'fieldtrip5_anatomy_prepro-mrtim12_simulation';
+Name.(abv{3}) = 'mrtim12-mrtim12_simulation';
+% -------------------------------------------------------------------------
+%% Load Mean maps
+Map = struct;
+for a = 1:nAbv
+    path = [output '\' Name.(abv{a}) '\mean_map.mat'];
+    Map.(abv{a}) = load_var_from_mat('map', path);
+end
+
+%% Calculate Diff maps
+for a = 1:2
+    map = struct;
+    map.anatomy   = Map.(abv{3}).anatomy;
+    map.coordsys  = Map.(abv{3}).coordsys;
+    map.dim       = Map.(abv{3}).dim;
+    map.transform = Map.(abv{3}).transform;
+    map.unit      = Map.(abv{3}).unit;
+    
+    for m = 1:nMapNames
+        map.(mapNames{m}) = struct;
+        for f = 1:nFields
+            map.(mapNames{m}).(fields{f}) = Map.(abv{3}).(mapNames{m}).(fields{f}) - Map.(abv{a}).(mapNames{m}).(fields{f});
+        end
+    end
+    
+    savePath = [output '\' abv{a} '-' abv{3}];
+    [savePath, imgPath] = create_output_folder(savePath, false);
+    save([savePath '\diff_map'], 'map');
+    
+    %% Prepare plot config
+    mriTarget = load_mri_anytype(Path.mriTarget.(dataset), MRI_TARGET_VAR_NAME);
+    cfg = struct;
+    cfg.crosshair = 'no'; % default
+    cfg.location = 'center';
+    cfg.parameter = 'tmp';
+    cfg.mri = mriTarget;
+    cfg.visible = false;
+    cfg.visualize = false;
+
+    for m = 1:nMapNames 
+        for f = 1:nFields
+            map.tmp = map.(mapNames{m}).(fields{f});
+            cfg.name = [mapNames{m} '_' fields{f}];
+            cfg.save = [imgPath '\' cfg.name];
+            plot_source(cfg, map);
+        end
     end
     
     cfg.method = 'slice';
     for m = 1:nMapNames    
-        %% Plot Mean map
-        map.tmp = map.(mapNames{m}).mean;
-        cfg.name = ['slice_' mapNames{m} '_mean'];
-        cfg.save = [imgPath '\' cfg.name];
-        plot_source(cfg, map);
-
-        %% Plot STD map
-        map.tmp = map.(mapNames{m}).std;
-        cfg.name = ['slice_' mapNames{m} '_std'];
-        cfg.save = [imgPath '\' cfg.name];
-        plot_source(cfg, map);
+        for f = 1:nFields
+            map.tmp = map.(mapNames{m}).(fields{f});
+            cfg.name = ['slice_' mapNames{m} '_' fields{f}];
+            cfg.save = [imgPath '\' cfg.name];
+            plot_source(cfg, map);
+        end
     end
     
     map = rmfield(map, 'tmp');
