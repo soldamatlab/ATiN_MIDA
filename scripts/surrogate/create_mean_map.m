@@ -215,7 +215,7 @@ for a = 1:2
     for m = 1:nMapNames
         map.(mapNames{m}) = struct;
         for f = 1:nFields
-            map.(mapNames{m}).(fields{f}) = Map.(abv{3}).(mapNames{m}).(fields{f}) - Map.(abv{a}).(mapNames{m}).(fields{f});
+            map.(mapNames{m}).(fields{f}) = Map.(abv{a}).(mapNames{m}).(fields{f}) - Map.(abv{3}).(mapNames{m}).(fields{f});
         end
     end
     
