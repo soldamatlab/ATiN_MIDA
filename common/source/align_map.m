@@ -22,11 +22,14 @@ function [sourceInterp] = align_map(Config)
 %   Config.mriPreproVarName
 %   Config.mriTargetVarName
 %   Config.sourcemodelVarName
+%
+%   Config.binosim = false by default
 
 %% Constants
 PLOT = false;
 VISUALIZE = true;
 VISIBLE = true;
+BINOSIM = false;
 ALLOW_EXISTING_FOLDER = false;
 
 SOURCEMODEL_VAR_NAME = 'sourcemodel';
@@ -46,6 +49,11 @@ if ~isfield(Config, 'visible')
     Config.visible = VISIBLE;
 end
 visible = Config.visible;
+
+if ~isfield(Config, 'binosim')
+    Config.binosim = BINOSIM;
+end
+binosim = Config.binosim;
 
 if ~isfield(Config, 'allowExistingFolder')
     Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
@@ -124,7 +132,14 @@ pos = (mriNorm.transform * pos);
 source.pos = pos(1:3,:)';
 
 %% Add maps
-if eval
+if binosim 
+    mapNames = {'houses', 'faces'};
+    maps = evaluation.eloreta;
+    axisNames = {''};
+    for m = 1:length(mapNames)
+        maps.(mapNames{m}) = maps.(mapNames{m}).map;
+    end
+elseif eval
     mapNames = {'ed1', 'ed2'};
     maps = evaluation.eloreta.snr10;
     axisNames = {'x', 'y', 'z'};
@@ -136,16 +151,21 @@ else
 end
 nMaps = length(mapNames);
 nAxis = length(axisNames);
-parameters = cell(1, nMaps * nAxis);
+parameters = cell(1, (nMaps * nAxis) + 1);
 for m = 1:nMaps
     for a = 1:nAxis
         param = [mapNames{m} axisNames{a}];
-        source.(param)                     = zeros(nDipoles, 1);
-        source.(param)(sourcemodel.inside) = maps.(mapNames{m})(:,a);
+        if binosim
+            source.(param) = maps.(mapNames{m});
+            source.(param)(isnan(source.(param))) = 0;
+        else
+            source.(param)                     = zeros(nDipoles, 1);
+            source.(param)(sourcemodel.inside) = maps.(mapNames{m})(:,a);
+        end
         parameters{((m-1)*nAxis) + a} = param;
     end
 end
-        
+parameters{end} = 'inside';       
 
 %% Interpolate map to target MRI
 cfg = struct;
