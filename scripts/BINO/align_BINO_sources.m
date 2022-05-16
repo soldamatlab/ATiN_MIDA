@@ -59,12 +59,13 @@ for s = 1:nSubjects
         
         cfg = struct;
         cfg.binosim = true;
+        cfg.keepinside = true;
         cfg.evaluation = [evalPath '\evaluation.mat'];
         cfg.mriPrepro = mriPrepro;
         cfg.mriTarget = Path.mriTarget;
         cfg.sourcemodel = Path.(subjects(s).name).sourcemodel.(fields{e});
         
-        cfg.output = [evalPath '\aligned'];
+        cfg.output = [evalPath '\aligned_keepinside'];
         cfg.plot = true;
         cfg.visualize = false;
         cfg.visible = false;
@@ -77,6 +78,5 @@ for s = 1:nSubjects
         else
             finished(s,e) = -1;
         end
-        return
     end
 end

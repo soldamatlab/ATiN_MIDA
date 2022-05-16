@@ -24,12 +24,14 @@ function [sourceInterp] = align_map(Config)
 %   Config.sourcemodelVarName
 %
 %   Config.binosim = false by default
+%   Config.keepinside = false by default
 
 %% Constants
 PLOT = false;
 VISUALIZE = true;
 VISIBLE = true;
 BINOSIM = false;
+KEEP_INSIDE = false;
 ALLOW_EXISTING_FOLDER = false;
 
 SOURCEMODEL_VAR_NAME = 'sourcemodel';
@@ -54,6 +56,11 @@ if ~isfield(Config, 'binosim')
     Config.binosim = BINOSIM;
 end
 binosim = Config.binosim;
+
+if ~isfield(Config, 'keepinside')
+    Config.keepinside = KEEP_INSIDE;
+end
+keepinside = Config.keepinside;
 
 if ~isfield(Config, 'allowExistingFolder')
     Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
@@ -124,6 +131,9 @@ source = struct;
 source.dim = sourcemodel.dim;
 source.pos = sourcemodel.pos;
 source.unit = sourcemodel.unit;
+if keepinside
+    source.inside = sourcemodel.inside;
+end
 
 %% Transform pos
 pos = [source.pos ones(nDipoles, 1)]';
@@ -151,7 +161,7 @@ else
 end
 nMaps = length(mapNames);
 nAxis = length(axisNames);
-parameters = cell(1, (nMaps * nAxis) + 1);
+parameters = cell(1, (nMaps * nAxis));
 for m = 1:nMaps
     for a = 1:nAxis
         param = [mapNames{m} axisNames{a}];
@@ -164,8 +174,7 @@ for m = 1:nMaps
         end
         parameters{((m-1)*nAxis) + a} = param;
     end
-end
-parameters{end} = 'inside';       
+end      
 
 %% Interpolate map to target MRI
 cfg = struct;
@@ -179,7 +188,7 @@ if isfield(Config, 'output')
 end
 
 %% Prepare plot config
-if ~plot
+if ~plot || keepinside % 'inside' will break plotting, reason unknown
     return
 end
 
