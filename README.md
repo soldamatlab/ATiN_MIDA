@@ -8,6 +8,8 @@ Image Processing Toolbox
 Curve Fitting Toolbox
 Signal Processing Toolbox
 Communications Toolbox
+SimBiology
+Statistics and Machine Learning Toolbox
 
 	Required external toolboxes:
 SPM12
