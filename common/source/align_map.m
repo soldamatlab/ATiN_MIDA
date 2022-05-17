@@ -187,7 +187,7 @@ end
 %% Interpolate map to target MRI
 cfg = struct;
 cfg.parameter = parameters;
-cfg.downsample = downsample; % defualt
+cfg.downsample = downsample;
 cfg.interpmethod = 'linear'; % default
 sourceInterp = ft_sourceinterpolate(cfg, source, mriTarget);
 %%
