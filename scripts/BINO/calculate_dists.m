@@ -14,6 +14,7 @@ Path.output.root = [Path.root '\analysis'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
 ALIGNED = 'aligned2_keepinside_ds2';
+SUFFIX = '_ds2';
 
 output = '\\PC-matous\BP_MIDA\results\stimulation\BINO';
 output = create_output_folder(output, false, false);
@@ -109,5 +110,5 @@ for p = 1:nPairs
     positions.(maps{m}).(fieldName).mean = mean(positions.(maps{m}).(fieldName).dists, 1);
     positions.(maps{m}).(fieldName).std  = std(positions.(maps{m}).(fieldName).dists, 0, 1);
 end
-save([output '\max_poistions'], 'positions');
+save([output '\max_poistions' SUFFIX], 'positions');
     
