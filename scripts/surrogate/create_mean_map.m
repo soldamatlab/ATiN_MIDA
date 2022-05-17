@@ -82,7 +82,7 @@ end
 
 %% Create mean maps
 % Set manually: -----------------------------------------------------------
-mapNames = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
+MAP_NAMES = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
 nMapNames = length(mapNames);
 fields = {'mean' 'std'};
 nFields = length(fields);
@@ -95,6 +95,7 @@ evalName{5} = 'mrtim12-mrtim12_simulation';
 % -------------------------------------------------------------------------
 %% Run
 for e = 1:length(evalName)
+    mapNames = MAP_NAMES;
     outputPath = [Path.root '\results\surrogate\' dataset '\' evalName{e}];
     [outputPath, imgPath] = create_output_folder(outputPath, false);
     map = struct;
@@ -154,6 +155,9 @@ for e = 1:length(evalName)
         map.(metrics{m}).mean = mean(allAxis, 4);
         map.(metrics{m}).std  = std(allAxis, 0, 4);
     end
+    mapNames{end+1} = 'ed1';
+    mapNames{end+1} = 'ed2';
+    nMapNames = length(mapNames);
     save([outputPath '\mean_map'], 'map');
 
     %% Prepare plot config
@@ -196,7 +200,7 @@ end
 % Set manually: -----------------------------------------------------------
 output = [Path.root '\results\surrogate\' dataset];
 
-mapNames = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
+mapNames = {'ed1' 'ed2' 'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
 nMapNames = length(mapNames);
 fields = {'mean' 'std'};
 nFields = length(fields);
