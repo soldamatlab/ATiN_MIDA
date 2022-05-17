@@ -13,6 +13,8 @@ Path.data.BINO = [Path.data.root '\BINO'];
 Path.output.root = [Path.root '\analysis'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
+ALIGNED = 'aligned2_keepinside';
+
 % common mri to align all maps to:
 Path.mriTarget = '\\PC-matous\BP_MIDA\analysis\BINO\S01\mri_common.mat';
 MRI_TARGET_VAR_NAME = 'mriCommon';
@@ -65,7 +67,7 @@ for s = 1:nSubjects
         cfg.mriTarget = Path.mriTarget;
         cfg.sourcemodel = Path.(subjects(s).name).sourcemodel.(fields{e});
         
-        cfg.output = [evalPath '\aligned_keepinside'];
+        cfg.output = [evalPath '\' ALIGNED];
         cfg.plot = true;
         cfg.visualize = false;
         cfg.visible = false;

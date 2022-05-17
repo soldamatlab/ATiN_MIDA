@@ -23,6 +23,8 @@ Path.output.BINO = [Path.output.root '\BINO'];
 dataset = 'NUDZ';
 %dataset = 'BINO';
 
+ALIGNED = 'aligned2';
+
 % common mri to align all maps to:
 Path.mriTarget.NUDZ = '\\PC-matous\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\mri_common.mat';
 Path.mriTarget.BINO = '\\PC-matous\BP_MIDA\analysis\BINO\S01\mri_common.mat';
@@ -62,7 +64,7 @@ for s = 1:nSubjects
         cfg.sourcemodel = [evalPath '\simulationmodelDS.mat'];
         cfg.sourcemodelVarName = 'simulationmodelDS';
         
-        cfg.output = [evalPath '\aligned'];
+        cfg.output = [evalPath '\' ALIGNED];
         cfg.plot = true;
         cfg.visualize = false;
         cfg.visible = false;
@@ -101,7 +103,7 @@ for e = 1:length(evalName)
     data = struct;
     for s = 1:nSubjects
         evalDir = [Path.(subjects(s).name).surrogate.root '\' evalName{e}];
-        sourcePath = [evalDir '\aligned\source_interp.mat'];
+        sourcePath = [evalDir '\' ALIGNED '\source_interp.mat'];
         source = load_var_from_mat('sourceInterp', sourcePath);
 
         if s == 1
