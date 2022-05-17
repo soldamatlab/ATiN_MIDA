@@ -23,6 +23,7 @@ function [sourceInterp] = align_map(Config)
 %   Config.mriTargetVarName
 %   Config.sourcemodelVarName
 %
+%   Config.downsample = 1 by default, no downsample
 %   Config.binosim = false by default
 %   Config.keepinside = false by default
 
@@ -33,6 +34,8 @@ VISIBLE = true;
 BINOSIM = false;
 KEEP_INSIDE = false;
 ALLOW_EXISTING_FOLDER = false;
+
+DOWNSAMPLE = 1;
 
 SOURCEMODEL_VAR_NAME = 'sourcemodel';
 
@@ -61,6 +64,11 @@ if ~isfield(Config, 'keepinside')
     Config.keepinside = KEEP_INSIDE;
 end
 keepinside = Config.keepinside;
+
+if ~isfield(Config, 'downsample')
+    Config.downsample = DOWNSAMPLE;
+end
+downsample = Config.downsample;
 
 if ~isfield(Config, 'allowExistingFolder')
     Config.allowExistingFolder = ALLOW_EXISTING_FOLDER;
@@ -179,10 +187,10 @@ end
 %% Interpolate map to target MRI
 cfg = struct;
 cfg.parameter = parameters;
-cfg.downsample = 1; % defualt
+cfg.downsample = downsample; % defualt
 cfg.interpmethod = 'linear'; % default
 sourceInterp = ft_sourceinterpolate(cfg, source, mriTarget);
-
+%%
 if isfield(Config, 'output')
     save([Config.output '\source_interp'], 'sourceInterp');
 end
