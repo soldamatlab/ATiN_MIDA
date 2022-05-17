@@ -140,6 +140,20 @@ for e = 1:length(evalName)
         map.(mapNames{m}).mean = mean(data.(mapNames{m}), 4);
         map.(mapNames{m}).std  = std(data.(mapNames{m}), 0, 4);
     end
+    metrics = {'ed1', 'ed2'};
+    for m = 1:length(metrics)
+        map.(metrics{m}) = struct;
+        axisMetrics = {[metrics{m} 'x'], [metrics{m} 'y'], [metrics{m} 'z']};
+        allAxis = NaN([map.dim, 3*nSubjects]);
+        for a = 1:length(axisMetrics)
+            allAxis(:,:,:,((a-1)*nSubjects) + 1 : a*nSubjects) = data.axisMetrics{a};
+        end
+        if sum(isnan(allAxis))
+            error("'allAxis' contains NaN values.")
+        end
+        map.(metrics{m}).mean = mean(allAxis, 4);
+        map.(metrics{m}).std  = std(allAxis, 0, 4);
+    end
     save([outputPath '\mean_map'], 'map');
 
     %% Prepare plot config
