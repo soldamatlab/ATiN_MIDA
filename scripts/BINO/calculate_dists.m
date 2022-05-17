@@ -13,7 +13,7 @@ Path.data.BINO = [Path.data.root '\BINO'];
 Path.output.root = [Path.root '\analysis'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
-ALIGNED = 'aligned2';
+ALIGNED = 'aligned2_keepinside_ds2';
 
 output = '\\PC-matous\BP_MIDA\results\stimulation\BINO';
 output = create_output_folder(output, false, false);

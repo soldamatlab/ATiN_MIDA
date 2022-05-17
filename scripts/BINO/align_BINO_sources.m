@@ -13,7 +13,7 @@ Path.data.BINO = [Path.data.root '\BINO'];
 Path.output.root = [Path.root '\analysis'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
-ALIGNED = 'aligned2_keepinside';
+ALIGNED = 'aligned2_keepinside_ds2';
 
 % common mri to align all maps to:
 Path.mriTarget = '\\PC-matous\BP_MIDA\analysis\BINO\S01\mri_common.mat';
@@ -60,6 +60,7 @@ for s = 1:nSubjects
         evalPath = Path.(subjects(s).name).stimulation.(fields{e});
         
         cfg = struct;
+        cfg.downsample = 2;
         cfg.binosim = true;
         cfg.keepinside = true;
         cfg.evaluation = [evalPath '\evaluation.mat'];
