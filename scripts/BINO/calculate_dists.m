@@ -13,6 +13,8 @@ Path.data.BINO = [Path.data.root '\BINO'];
 Path.output.root = [Path.root '\analysis'];
 Path.output.BINO = [Path.output.root '\BINO'];
 
+ALIGNED = 'aligned2';
+
 output = '\\PC-matous\BP_MIDA\results\stimulation\BINO';
 output = create_output_folder(output, false, false);
 
@@ -67,7 +69,7 @@ end
 for s = 1:nSubjects
     %% Load aligned sources
     for e = 1:nEvals
-        evalPath = [Path.(subjects(s).name).stimulation.(fields{e}) '\aligned\source_interp.mat'];
+        evalPath = [Path.(subjects(s).name).stimulation.(fields{e}) '\' ALIGNED '\source_interp.mat'];
         source = load_var_from_mat('sourceInterp', evalPath);
         
         for m = 1:nMaps
