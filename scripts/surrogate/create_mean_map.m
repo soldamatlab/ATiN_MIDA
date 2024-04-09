@@ -23,7 +23,7 @@ Path.output.BINO = [Path.output.root '\BINO'];
 dataset = 'NUDZ';
 %dataset = 'BINO';
 
-ALIGNED = 'aligned2';
+ALIGNED = 'aligned2_ds2';
 
 % common mri to align all maps to:
 Path.mriTarget.NUDZ = '\\PC-matous\BP_MIDA\analysis\NUDZ\ANDROVICOVA_RENATA_8753138768\mri_common.mat';
@@ -58,6 +58,7 @@ for s = 1:nSubjects
         evalPath = [evals(e).folder '\' evals(e).name];
         
         cfg = struct;
+        cfg.downsample = 2;
         cfg.evaluation = [evalPath '\evaluation.mat'];
         cfg.mriPrepro = mriPrepro;
         cfg.mriTarget = Path.mriTarget.(dataset);
@@ -83,7 +84,7 @@ end
 %% Create mean maps
 % Set manually: -----------------------------------------------------------
 MAP_NAMES = {'ed1x' 'ed1y' 'ed1z' 'ed2x' 'ed2y' 'ed2z'};
-nMapNames = length(mapNames);
+nMapNames = length(MAP_NAMES);
 fields = {'mean' 'std'};
 nFields = length(fields);
 evalName = cell(5,1);
@@ -96,6 +97,7 @@ evalName{5} = 'mrtim12-mrtim12_simulation';
 %% Run
 for e = 1:length(evalName)
     mapNames = MAP_NAMES;
+    nMapNames = length(mapNames);
     outputPath = [Path.root '\results\surrogate\' dataset '\' evalName{e}];
     [outputPath, imgPath] = create_output_folder(outputPath, false);
     map = struct;
@@ -109,7 +111,7 @@ for e = 1:length(evalName)
 
         if s == 1
             map.anatomy   = source.anatomy;
-            map.coordsys  = source.coordsys;
+            %map.coordsys  = source.coordsys;
             map.dim       = source.dim;
             map.transform = source.transform;
             map.unit      = source.unit;
@@ -141,19 +143,19 @@ for e = 1:length(evalName)
         map.(mapNames{m}).mean = mean(data.(mapNames{m}), 4);
         map.(mapNames{m}).std  = std(data.(mapNames{m}), 0, 4);
     end
-    metrics = {'ed1', 'ed2'};
+    metrics = {'ed1', 'ed2'}; % Running out of memory.
     for m = 1:length(metrics)
         map.(metrics{m}) = struct;
         axisMetrics = {[metrics{m} 'x'], [metrics{m} 'y'], [metrics{m} 'z']};
         allAxis = NaN([map.dim, 3*nSubjects]);
         for a = 1:length(axisMetrics)
-            allAxis(:,:,:,((a-1)*nSubjects) + 1 : a*nSubjects) = data.axisMetrics{a};
+            allAxis(:,:,:,((a-1)*nSubjects) + 1 : a*nSubjects) = data.(axisMetrics{a});
         end
         if sum(isnan(allAxis))
             error("'allAxis' contains NaN values.")
         end
-        map.(metrics{m}).mean = mean(allAxis, 4);
-        map.(metrics{m}).std  = std(allAxis, 0, 4);
+        map.(metrics{m}).mean = mean(cat(4, data.(axisMetrics{1}),data.(axisMetrics{2}),data.(axisMetrics{3})), 4);
+        map.(metrics{m}).std  = std(cat(4, data.(axisMetrics{1}),data.(axisMetrics{2}),data.(axisMetrics{3})), 0, 4);
     end
     mapNames{end+1} = 'ed1';
     mapNames{end+1} = 'ed2';
@@ -227,7 +229,7 @@ end
 for a = 1:2
     map = struct;
     map.anatomy   = Map.(abv{3}).anatomy;
-    map.coordsys  = Map.(abv{3}).coordsys;
+    %map.coordsys  = Map.(abv{3}).coordsys;
     map.dim       = Map.(abv{3}).dim;
     map.transform = Map.(abv{3}).transform;
     map.unit      = Map.(abv{3}).unit;
